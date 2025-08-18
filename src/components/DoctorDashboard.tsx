@@ -206,13 +206,27 @@ const DoctorDashboard = () => {
                   )}
                   
                   {status === 'available' && (
-                    <Button className="bg-gradient-primary hover:bg-primary-hover">
+                    <Button 
+                      className="bg-gradient-primary hover:bg-primary-hover"
+                      onClick={() => {
+                        if (stage.id === 2) window.location.href = '/interview';
+                        if (stage.id === 3) window.location.href = '/documents';
+                        if (stage.id === 4) window.location.href = '/training';
+                      }}
+                    >
                       Iniciar Etapa
                     </Button>
                   )}
                   
                   {status === 'in_progress' && (
-                    <Button variant="outline">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        if (stage.id === 2) window.location.href = '/interview';
+                        if (stage.id === 3) window.location.href = '/documents';
+                        if (stage.id === 4) window.location.href = '/training';
+                      }}
+                    >
                       Continuar Etapa
                     </Button>
                   )}
