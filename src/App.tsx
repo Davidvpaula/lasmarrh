@@ -1,39 +1,67 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Interview from "./pages/Interview";
-import Documents from "./pages/Documents";
-import Training from "./pages/Training";
-import NotFound from "./pages/NotFound";
+import { Routes, Route } from 'react-router-dom';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
+import Index from './pages/Index';
+import Auth from './pages/Auth';
+import Dashboard from './pages/Dashboard';
+import Interview from './pages/Interview';
+import Documents from './pages/Documents';
+import Training from './pages/Training';
+import Profile from './pages/Profile';
+import Applications from './pages/admin/Applications';
+import Administrators from './pages/admin/Administrators';
+import Uploads from './pages/admin/Uploads';
+import Settings from './pages/admin/Settings';
+import NotFound from './pages/NotFound';
+import { AuthProvider, useAuth } from './hooks/useAuth';
+import { Toaster } from '@/components/ui/toaster';
+import './App.css';
 
-const queryClient = new QueryClient();
+function AppContent() {
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
+  const isAuthPage = window.location.pathname === '/auth' || window.location.pathname === '/';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+  if (!isAuthenticated || isAuthPage) {
+    return (
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <main className="flex-1 overflow-hidden">
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/interview" element={<Interview />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/training" element={<Training />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin/applications" element={<Applications />} />
+            <Route path="/admin/administrators" element={<Administrators />} />
+            <Route path="/admin/uploads" element={<Uploads />} />
+            <Route path="/admin/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+        </main>
+      </div>
+    </SidebarProvider>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+      <Toaster />
     </AuthProvider>
-  </QueryClientProvider>
-);
+  );
+}
 
 export default App;
