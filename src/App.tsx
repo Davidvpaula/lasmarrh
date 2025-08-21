@@ -12,6 +12,7 @@ import Applications from './pages/admin/Applications';
 import Administrators from './pages/admin/Administrators';
 import Uploads from './pages/admin/Uploads';
 import Settings from './pages/admin/Settings';
+import Setup from './pages/Setup';
 import NotFound from './pages/NotFound';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { Toaster } from '@/components/ui/toaster';
@@ -20,13 +21,14 @@ import './App.css';
 function AppContent() {
   const { user } = useAuth();
   const isAuthenticated = !!user;
-  const isAuthPage = window.location.pathname === '/auth' || window.location.pathname === '/';
+  const isAuthPage = window.location.pathname === '/auth' || window.location.pathname === '/' || window.location.pathname === '/setup';
 
   if (!isAuthenticated || isAuthPage) {
     return (
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/setup" element={<Setup />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     );
