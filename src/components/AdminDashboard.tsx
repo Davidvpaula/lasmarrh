@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, UserPlus, Download, MessageSquare } from 'lucide-react';
+import TrainingManagement from './TrainingManagement';
 
 interface DoctorApplication {
   id: string;
@@ -194,7 +195,7 @@ const AdminDashboard = () => {
   };
 
   const getStageName = (stageNumber: number) => {
-    const stages = ['', 'Cadastro', 'Entrevista', 'Documentos', 'Treinamento', 'Conclusão'];
+    const stages = ['', 'Cadastro', 'Entrevista', 'Documentos', 'Treinamento', 'Conclusão', 'Treinamentos Adicionais'];
     return stages[stageNumber] || 'Desconhecida';
   };
 
@@ -556,20 +557,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="training">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestão de Treinamentos</CardTitle>
-                <CardDescription>
-                  Configure vídeos e materiais de treinamento
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <Play className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Funcionalidade de treinamento será implementada em breve</p>
-                </div>
-              </CardContent>
-            </Card>
+            <TrainingManagement />
           </TabsContent>
 
           <TabsContent value="admins">

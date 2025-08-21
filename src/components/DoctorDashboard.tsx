@@ -23,10 +23,11 @@ interface Application {
 
 const STAGES = [
   { id: 1, title: 'Cadastro', description: 'Registro inicial no sistema', icon: CheckCircle },
-  { id: 2, title: 'Entrevista', description: 'Processo de entrevista', icon: FileText },
-  { id: 3, title: 'Documentos', description: 'Envio de documentação', icon: FileText },
-  { id: 4, title: 'Treinamento', description: 'Módulos de capacitação', icon: Play },
-  { id: 5, title: 'Conclusão', description: 'Finalização do processo', icon: Award },
+  { id: 2, title: 'Entrevista', description: 'Processo de entrevista (aguarda aprovação)', icon: FileText },
+  { id: 3, title: 'Documentos', description: 'Envio de documentação obrigatória', icon: FileText },
+  { id: 4, title: 'Treinamento', description: 'Módulos de capacitação obrigatória', icon: Play },
+  { id: 5, title: 'Conclusão', description: 'Finalização do processo seletivo', icon: Award },
+  { id: 6, title: 'Treinamentos Adicionais', description: 'Cursos complementares (opcional)', icon: Play, optional: true },
 ];
 
 const DoctorDashboard = () => {
@@ -104,7 +105,7 @@ const DoctorDashboard = () => {
 
   const calculateProgress = () => {
     const completedStages = stageProgress.filter(s => 
-      s.status === 'completed' || s.status === 'approved'
+      (s.status === 'completed' || s.status === 'approved') && s.stage_number <= 5 // Only count first 5 stages for main progress
     ).length;
     return (completedStages / 5) * 100;
   };
@@ -160,9 +161,10 @@ const DoctorDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Stages */}
+        {/* Main Process Stages */}
         <div className="space-y-4">
-          {STAGES.map((stage) => {
+          <h2 className="text-xl font-semibold mb-4">Processo Seletivo - Etapas Obrigatórias</h2>
+          {STAGES.filter(stage => !stage.optional).map((stage) => {
             const status = getStageStatus(stage.id);
             const stageData = stageProgress.find(s => s.stage_number === stage.id);
             const Icon = stage.icon;
@@ -241,6 +243,89 @@ const DoctorDashboard = () => {
             );
           })}
         </div>
+
+        {/* Optional Additional Training Stage */}
+        {stageProgress.find(s => s.stage_number === 5 && (s.status === 'completed' || s.status === 'approved')) && (
+          <div className="space-y-4 mt-8">
+            <h2 className="text-xl font-semibold mb-4">Treinamentos Adicionais - Etapa Opcional</h2>
+            {STAGES.filter(stage => stage.optional).map((stage) => {
+              const status = getStageStatus(stage.id);
+              const stageData = stageProgress.find(s => s.stage_number === stage.id);
+              const Icon = stage.icon;
+
+              return (
+                <Card key={stage.id} className={`transition-all duration-200 border-dashed ${
+                  status === 'available' || status === 'in_progress' 
+                    ? 'ring-2 ring-secondary ring-opacity-50 shadow-md' 
+                    : ''
+                }`}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <Icon className={`h-6 w-6 ${
+                            status === 'completed' || status === 'approved' 
+                              ? 'text-success' 
+                              : status === 'available' || status === 'in_progress'
+                              ? 'text-secondary'
+                              : 'text-muted-foreground'
+                          }`} />
+                          <div>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              Etapa {stage.id}: {stage.title}
+                              <Badge variant="outline" className="text-xs">Opcional</Badge>
+                            </CardTitle>
+                            <CardDescription>{stage.description}</CardDescription>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {getStatusIcon(status)}
+                        {getStatusBadge(status)}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {stageData?.notes && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {stageData.notes}
+                      </p>
+                    )}
+                    
+                    {status === 'available' && (
+                      <Button 
+                        variant="secondary"
+                        className="bg-secondary hover:bg-secondary/80"
+                        onClick={() => {
+                          if (stage.id === 6) window.location.href = '/training';
+                        }}
+                      >
+                        Iniciar Treinamentos Extras
+                      </Button>
+                    )}
+                    
+                    {status === 'in_progress' && (
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          if (stage.id === 6) window.location.href = '/training';
+                        }}
+                      >
+                        Continuar Treinamentos
+                      </Button>
+                    )}
+                    
+                    {(status === 'completed' || status === 'approved') && stageData?.completed_at && (
+                      <div className="text-sm text-muted-foreground">
+                        Concluída em {new Date(stageData.completed_at).toLocaleDateString('pt-BR')}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
