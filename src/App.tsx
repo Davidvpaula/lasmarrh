@@ -1,8 +1,10 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
+import AdminAuth from './pages/AdminAuth';
+import ProfessionalAuth from './pages/ProfessionalAuth';
 import Dashboard from './pages/Dashboard';
 import Interview from './pages/Interview';
 import Documents from './pages/Documents';
@@ -20,14 +22,21 @@ import './App.css';
 
 function AppContent() {
   const { user } = useAuth();
+  const location = useLocation();
   const isAuthenticated = !!user;
-  const isAuthPage = window.location.pathname === '/auth' || window.location.pathname === '/' || window.location.pathname === '/setup';
+  const isAuthPage = location.pathname === '/' || 
+                     location.pathname === '/auth' || 
+                     location.pathname === '/auth/admin' || 
+                     location.pathname === '/auth/professional' || 
+                     location.pathname === '/setup';
 
   if (!isAuthenticated || isAuthPage) {
     return (
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/auth/admin" element={<AdminAuth />} />
+        <Route path="/auth/professional" element={<ProfessionalAuth />} />
         <Route path="/setup" element={<Setup />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
