@@ -1,11 +1,10 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import Index from './pages/Index';
-import Auth from './pages/Auth';
-import AdminAuth from './pages/AdminAuth';
-import ProfessionalAuth from './pages/ProfessionalAuth';
 import Dashboard from './pages/Dashboard';
+import DoctorDashboard from '@/components/DoctorDashboard';
+import AdminDashboard from '@/components/AdminDashboard';
 import Interview from './pages/Interview';
 import Documents from './pages/Documents';
 import Training from './pages/Training';
@@ -14,34 +13,15 @@ import Applications from './pages/admin/Applications';
 import Administrators from './pages/admin/Administrators';
 import Uploads from './pages/admin/Uploads';
 import Settings from './pages/admin/Settings';
-import Setup from './pages/Setup';
 import NotFound from './pages/NotFound';
-import { AuthProvider, useAuth } from './hooks/useAuth';
+import { AuthProvider } from './hooks/useAuth';
 import { Toaster } from '@/components/ui/toaster';
 import './App.css';
 
 function AppContent() {
-  const { user } = useAuth();
-  const location = useLocation();
-  const isAuthenticated = !!user;
-  const isAuthPage = location.pathname === '/' || 
-                     location.pathname === '/auth' || 
-                     location.pathname === '/auth/admin' || 
-                     location.pathname === '/auth/professional' || 
-                     location.pathname === '/setup';
-
-  if (!isAuthenticated || isAuthPage) {
-    return (
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/auth/admin" element={<AdminAuth />} />
-        <Route path="/auth/professional" element={<ProfessionalAuth />} />
-        <Route path="/setup" element={<Setup />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    );
-  }
+  // Desabilitando autenticação temporariamente
+  const isAuthenticated = true; // Sempre true por enquanto
+  const isAuthPage = false; // Sempre false para acessar dashboards
 
   return (
     <SidebarProvider>
@@ -49,7 +29,10 @@ function AppContent() {
         <AppSidebar />
         <main className="flex-1 overflow-hidden">
           <Routes>
+            <Route path="/" element={<Index />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/professional" element={<DoctorDashboard />} />
+            <Route path="/dashboard/admin" element={<AdminDashboard />} />
             <Route path="/interview" element={<Interview />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/training" element={<Training />} />

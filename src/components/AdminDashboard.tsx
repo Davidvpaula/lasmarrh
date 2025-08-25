@@ -8,11 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, UserPlus, Download, MessageSquare } from 'lucide-react';
-import TrainingManagement from './TrainingManagement';
 
 interface DoctorApplication {
   id: string;
@@ -42,11 +39,18 @@ interface AdminUser {
   created_at: string;
 }
 
+// Simulando dados de admin para desenvolvimento
+const mockProfile = {
+  user_id: 'mock-admin-123',
+  full_name: 'Administrador Comercial',
+  email: 'comercial@telemedlasmar.com',
+  role: 'admin'
+};
+
 const AdminDashboard = () => {
-  const { profile, signOut } = useAuth();
   const [applications, setApplications] = useState<DoctorApplication[]>([]);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Desabilitado para desenvolvimento
   const [selectedApplication, setSelectedApplication] = useState<DoctorApplication | null>(null);
   const [newAdminData, setNewAdminData] = useState({
     full_name: '',
@@ -54,131 +58,82 @@ const AdminDashboard = () => {
     password: ''
   });
 
+  // Mock data para desenvolvimento
+  const mockApplications = [
+    {
+      id: 'app-001',
+      doctor_id: 'doc-001', 
+      status: 'active',
+      current_stage: 2,
+      created_at: '2024-01-15T10:00:00Z',
+      profiles: {
+        full_name: 'Dr. Maria Santos',
+        email: 'maria.santos@email.com',
+        crm: 'CRM/SP 123456',
+        phone: '(11) 99999-9999'
+      },
+      stage_progress: [
+        { stage_number: 1, status: 'completed', completed_at: '2024-01-15T10:00:00Z', notes: 'Cadastro aprovado' },
+        { stage_number: 2, status: 'in_progress', completed_at: '', notes: 'Entrevista agendada' },
+        { stage_number: 3, status: 'locked', completed_at: '', notes: '' },
+      ]
+    },
+    {
+      id: 'app-002',
+      doctor_id: 'doc-002',
+      status: 'active', 
+      current_stage: 3,
+      created_at: '2024-01-10T09:00:00Z',
+      profiles: {
+        full_name: 'Dr. Carlos Oliveira',
+        email: 'carlos.oliveira@email.com',
+        crm: 'CRM/RJ 654321',
+        phone: '(21) 88888-8888'
+      },
+      stage_progress: [
+        { stage_number: 1, status: 'completed', completed_at: '2024-01-10T09:00:00Z', notes: 'Cadastro aprovado' },
+        { stage_number: 2, status: 'completed', completed_at: '2024-01-12T14:00:00Z', notes: 'Entrevista aprovada' },
+        { stage_number: 3, status: 'in_progress', completed_at: '', notes: 'Aguardando documentos' },
+      ]
+    }
+  ];
+
+  const mockAdmins = [
+    {
+      id: 'admin-001',
+      full_name: 'Administrador Comercial',
+      email: 'comercial@telemedlasmar.com',
+      role: 'admin',
+      created_at: '2024-01-01T00:00:00Z'
+    }
+  ];
+
   useEffect(() => {
-    fetchApplications();
-    fetchAdmins();
+    // Simulando carregamento de dados para desenvolvimento
+    setApplications(mockApplications);
+    setAdmins(mockAdmins);
   }, []);
 
-  const fetchApplications = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('applications')
-        .select(`
-          *,
-          profiles!applications_doctor_id_fkey (
-            full_name,
-            email,
-            crm,
-            phone
-          ),
-          stage_progress (
-            stage_number,
-            status,
-            completed_at,
-            notes
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setApplications(data || []);
-    } catch (error) {
-      console.error('Error fetching applications:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleSignOut = () => {
+    window.location.href = '/';
   };
 
-  const fetchAdmins = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'admin')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setAdmins(data || []);
-    } catch (error) {
-      console.error('Error fetching admins:', error);
-    }
-  };
-
-  const updateStageStatus = async (applicationId: string, stageNumber: number, status: 'approved' | 'rejected' | 'completed' | 'available' | 'in_progress' | 'locked', notes: string = '') => {
-    try {
-      const { error } = await supabase
-        .from('stage_progress')
-        .update({ 
-          status, 
-          notes,
-          completed_at: status === 'approved' ? new Date().toISOString() : null 
-        })
-        .eq('application_id', applicationId)
-        .eq('stage_number', stageNumber);
-
-      if (error) throw error;
-
-      // Update current stage if approved
-      if (status === 'approved' && stageNumber < 5) {
-        await supabase
-          .from('applications')
-          .update({ current_stage: stageNumber + 1 })
-          .eq('id', applicationId);
-
-        // Unlock next stage
-        await supabase
-          .from('stage_progress')
-          .update({ status: 'available' })
-          .eq('application_id', applicationId)
-          .eq('stage_number', stageNumber + 1);
-      }
-
-      toast({
-        title: "Status atualizado",
-        description: "O status da etapa foi atualizado com sucesso.",
-      });
-
-      fetchApplications();
-    } catch (error) {
-      console.error('Error updating stage status:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o status.",
-        variant: "destructive",
-      });
-    }
+  // Funções desabilitadas para desenvolvimento - usando mock data
+  const updateStageStatus = async (applicationId: string, stageNumber: number, status: string, notes: string = '') => {
+    // Mock function - em produção conectaria ao Supabase
+    toast({
+      title: "Status atualizado (DEMO)",
+      description: "Em desenvolvimento - mudanças não são persistidas.",
+    });
   };
 
   const createAdmin = async () => {
-    try {
-      const { error } = await supabase.auth.signUp({
-        email: newAdminData.email,
-        password: newAdminData.password,
-        options: {
-          data: {
-            full_name: newAdminData.full_name,
-            role: 'admin'
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Admin criado",
-        description: "Nova conta de admin criada com sucesso.",
-      });
-
-      setNewAdminData({ full_name: '', email: '', password: '' });
-      fetchAdmins();
-    } catch (error) {
-      console.error('Error creating admin:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível criar a conta de admin.",
-        variant: "destructive",
-      });
-    }
+    // Mock function - em produção conectaria ao Supabase
+    toast({
+      title: "Admin criado (DEMO)",
+      description: "Em desenvolvimento - mudanças não são persistidas.",
+    });
+    setNewAdminData({ full_name: '', email: '', password: '' });
   };
 
   const getStageStatusCount = (stageNumber: number) => {
@@ -234,9 +189,9 @@ const AdminDashboard = () => {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">
-                Olá, {profile?.full_name}
+                Olá, {mockProfile?.full_name}
               </span>
-              <Button variant="outline" size="sm" onClick={signOut}>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
               </Button>
@@ -557,7 +512,62 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="training">
-            <TrainingManagement />
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestão de Treinamentos</CardTitle>
+                <CardDescription>
+                  Configure vídeos e materiais de treinamento (DEMO)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                        <Play className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">Introdução ao Sistema</h3>
+                        <p className="text-sm text-muted-foreground">Vídeo de boas-vindas e orientações iniciais</p>
+                        <div className="flex items-center gap-4 mt-1">
+                          <span className="text-xs text-muted-foreground">15 min</span>
+                          <Badge variant="secondary">Ativo</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <FileText className="h-4 w-4 mr-1" />
+                      Editar
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                        <Play className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">Protocolos de Atendimento</h3>
+                        <p className="text-sm text-muted-foreground">Procedimentos e diretrizes para atendimento</p>
+                        <div className="flex items-center gap-4 mt-1">
+                          <span className="text-xs text-muted-foreground">30 min</span>
+                          <Badge variant="secondary">Ativo</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <FileText className="h-4 w-4 mr-1" />
+                      Editar
+                    </Button>
+                  </div>
+
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="text-sm">Modo de desenvolvimento ativo</p>
+                    <p className="text-xs">Funcionalidade completa será conectada ao banco de dados em breve</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="admins">

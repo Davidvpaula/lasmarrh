@@ -3,8 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, Clock, Lock, FileText, Play, Award, LogOut } from 'lucide-react';
 
 interface StageProgress {
@@ -30,42 +28,43 @@ const STAGES = [
   { id: 6, title: 'Treinamentos Adicionais', description: 'Cursos complementares (opcional)', icon: Play, optional: true },
 ];
 
+// Simulando dados de profissional para desenvolvimento
+const mockProfile = {
+  user_id: 'mock-user-123',
+  full_name: 'Dr. João Silva',
+  email: 'joao.silva@email.com',
+  role: 'doctor'
+};
+
 const DoctorDashboard = () => {
-  const { profile, signOut } = useAuth();
   const [application, setApplication] = useState<Application | null>(null);
   const [stageProgress, setStageProgress] = useState<StageProgress[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Desabilitado para desenvolvimento
+
+  // Mock data para desenvolvimento
+  const mockApplication = {
+    id: 'app-123',
+    status: 'active',
+    current_stage: 2
+  };
+
+  const mockStageProgress = [
+    { stage_number: 1, status: 'completed', completed_at: '2024-01-15T10:00:00Z', notes: 'Cadastro realizado com sucesso' },
+    { stage_number: 2, status: 'in_progress', started_at: '2024-01-20T09:00:00Z', notes: 'Aguardando agendamento da entrevista' },
+    { stage_number: 3, status: 'locked', notes: null },
+    { stage_number: 4, status: 'locked', notes: null },
+    { stage_number: 5, status: 'locked', notes: null },
+    { stage_number: 6, status: 'locked', notes: null },
+  ];
 
   useEffect(() => {
-    fetchApplicationData();
+    // Simulando carregamento de dados para desenvolvimento
+    setApplication(mockApplication);
+    setStageProgress(mockStageProgress);
   }, []);
 
-  const fetchApplicationData = async () => {
-    try {
-      // Fetch application
-      const { data: appData, error: appError } = await supabase
-        .from('applications')
-        .select('*')
-        .eq('doctor_id', profile.user_id)
-        .single();
-
-      if (appError) throw appError;
-      setApplication(appData);
-
-      // Fetch stage progress
-      const { data: stageData, error: stageError } = await supabase
-        .from('stage_progress')
-        .select('*')
-        .eq('application_id', appData.id)
-        .order('stage_number');
-
-      if (stageError) throw stageError;
-      setStageProgress(stageData);
-    } catch (error) {
-      console.error('Error fetching application data:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleSignOut = () => {
+    window.location.href = '/';
   };
 
   const getStageStatus = (stageNumber: number) => {
@@ -130,9 +129,9 @@ const DoctorDashboard = () => {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">
-                Olá, {profile?.full_name}
+                Olá, {mockProfile?.full_name}
               </span>
-              <Button variant="outline" size="sm" onClick={signOut}>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
               </Button>

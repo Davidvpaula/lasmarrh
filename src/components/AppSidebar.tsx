@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { NavLink, useLocation } from "react-router-dom"
 import { 
   Home, 
@@ -12,7 +11,6 @@ import {
   Calendar,
   Upload
 } from "lucide-react"
-import { useAuth } from "@/hooks/useAuth"
 import {
   Sidebar,
   SidebarContent,
@@ -28,17 +26,20 @@ import {
 
 export function AppSidebar() {
   const { state } = useSidebar()
-  const { profile, signOut } = useAuth()
   const location = useLocation()
   const currentPath = location.pathname
   const collapsed = state === "collapsed"
 
-  const isActive = (path: string) => currentPath === path
+  // Determinar se está no contexto admin ou professional
+  const isAdminContext = currentPath.includes('/admin') || currentPath === '/dashboard/admin'
+
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-accent"
 
   const doctorItems = [
-    { title: "Dashboard", url: "/dashboard", icon: Home },
+    { title: "Início", url: "/", icon: Home },
+    { title: "Seleção Dashboard", url: "/dashboard", icon: Settings },
+    { title: "Dashboard Profissional", url: "/dashboard/professional", icon: User },
     { title: "Entrevista", url: "/interview", icon: Calendar },
     { title: "Documentos", url: "/documents", icon: FileText },
     { title: "Treinamento", url: "/training", icon: GraduationCap },
@@ -46,17 +47,19 @@ export function AppSidebar() {
   ]
 
   const adminItems = [
-    { title: "Dashboard", url: "/dashboard", icon: Home },
+    { title: "Início", url: "/", icon: Home },
+    { title: "Seleção Dashboard", url: "/dashboard", icon: Settings },
+    { title: "Dashboard Admin", url: "/dashboard/admin", icon: Shield },
     { title: "Candidatos", url: "/admin/applications", icon: Users },
     { title: "Administradores", url: "/admin/administrators", icon: Shield },
     { title: "Uploads", url: "/admin/uploads", icon: Upload },
     { title: "Configurações", url: "/admin/settings", icon: Settings },
   ]
 
-  const items = profile?.role === 'admin' ? adminItems : doctorItems
+  const items = isAdminContext ? adminItems : doctorItems
 
-  const handleSignOut = async () => {
-    await signOut()
+  const handleSignOut = () => {
+    window.location.href = '/';
   }
 
   return (
@@ -69,7 +72,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-            {profile?.role === 'admin' ? 'Administração' : 'Navegação'}
+            {isAdminContext ? 'Administração' : 'Navegação'}
           </SidebarGroupLabel>
 
           <SidebarGroupContent>

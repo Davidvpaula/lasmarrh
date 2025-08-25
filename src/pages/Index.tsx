@@ -1,29 +1,11 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, UserPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Shield, UserPlus, ArrowRight } from 'lucide-react';
 
 const Index = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/dashboard');
-    }
-  }, [user, loading, navigate]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (user) return null;
+  const handleNavigate = (path: string) => {
+    window.location.href = path;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
@@ -36,57 +18,64 @@ const Index = () => {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Plataforma de gestão de processos seletivos para profissionais da saúde
           </p>
+          <div className="mt-8 p-4 bg-warning/10 rounded-lg border border-warning/20">
+            <p className="text-sm text-warning-foreground">
+              <strong>Modo de Desenvolvimento:</strong> Sistema de login desabilitado temporariamente
+            </p>
+          </div>
         </div>
 
         {/* Access Options */}
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Admin Access */}
-          <Card className="hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Shield className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle className="text-2xl">Acesso Administrativo</CardTitle>
-              <CardDescription className="text-base">
-                Área restrita para administradores do sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-sm text-muted-foreground mb-6">
-                Gerencie candidatos, processos e configurações do sistema
-              </p>
-              <Button 
-                onClick={() => navigate('/auth/admin')}
-                className="w-full bg-gradient-primary hover:bg-primary-hover"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                Login Administrativo
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Professional Access */}
+          {/* Professional Dashboard */}
           <Card className="hover:shadow-lg transition-all duration-200 border-2 hover:border-secondary/20">
             <CardHeader className="text-center pb-4">
               <div className="mx-auto w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mb-4">
                 <UserPlus className="h-8 w-8 text-secondary" />
               </div>
-              <CardTitle className="text-2xl">Profissional da Saúde</CardTitle>
+              <CardTitle className="text-2xl">Dashboard do Profissional</CardTitle>
               <CardDescription className="text-base">
-                Candidatura e acompanhamento de processo seletivo
+                Acompanhe seu processo seletivo e etapas de candidatura
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-sm text-muted-foreground mb-6">
-                Cadastre-se ou faça login para acompanhar sua candidatura
+                Visualize progresso, documentos, treinamentos e mais
               </p>
               <Button 
-                onClick={() => navigate('/auth/professional')}
+                onClick={() => handleNavigate('/dashboard/professional')}
                 variant="secondary"
                 className="w-full"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                Acesso do Profissional
+                Acessar Dashboard
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Admin Dashboard */}
+          <Card className="hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Shield className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">Dashboard Administrativo</CardTitle>
+              <CardDescription className="text-base">
+                Gerencie candidatos, processos e configurações do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-sm text-muted-foreground mb-6">
+                Controle completo de candidaturas, treinamentos e usuários
+              </p>
+              <Button 
+                onClick={() => handleNavigate('/dashboard/admin')}
+                className="w-full bg-gradient-primary hover:bg-primary-hover"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Acessar Dashboard
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </CardContent>
           </Card>
