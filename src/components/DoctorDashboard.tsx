@@ -212,7 +212,7 @@ const DoctorDashboard = () => {
                       onClick={() => {
                         if (stage.id === 2) window.location.href = '/interview';
                         if (stage.id === 3) window.location.href = '/documents';
-                        if (stage.id === 4) window.location.href = '/training';
+                        if (stage.id === 4) window.location.href = '/training/professional';
                       }}
                     >
                       Iniciar Etapa
@@ -225,7 +225,7 @@ const DoctorDashboard = () => {
                       onClick={() => {
                         if (stage.id === 2) window.location.href = '/interview';
                         if (stage.id === 3) window.location.href = '/documents';
-                        if (stage.id === 4) window.location.href = '/training';
+                        if (stage.id === 4) window.location.href = '/training/professional';
                       }}
                     >
                       Continuar Etapa
@@ -296,7 +296,7 @@ const DoctorDashboard = () => {
                         variant="secondary"
                         className="bg-secondary hover:bg-secondary/80"
                         onClick={() => {
-                          if (stage.id === 6) window.location.href = '/training';
+                          if (stage.id === 6) window.location.href = '/training/professional';
                         }}
                       >
                         Iniciar Treinamentos Extras
@@ -307,7 +307,7 @@ const DoctorDashboard = () => {
                       <Button 
                         variant="outline"
                         onClick={() => {
-                          if (stage.id === 6) window.location.href = '/training';
+                          if (stage.id === 6) window.location.href = '/training/professional';
                         }}
                       >
                         Continuar Treinamentos

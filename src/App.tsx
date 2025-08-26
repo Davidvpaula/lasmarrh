@@ -8,6 +8,7 @@ import AdminDashboard from '@/components/AdminDashboard';
 import Interview from './pages/Interview';
 import Documents from './pages/Documents';
 import Training from './pages/Training';
+import ProfessionalTraining from '@/components/ProfessionalTraining';
 import Profile from './pages/Profile';
 import Applications from './pages/admin/Applications';
 import Administrators from './pages/admin/Administrators';
@@ -35,7 +36,12 @@ function AppContent() {
             <Route path="/dashboard/admin" element={<AdminDashboard />} />
             <Route path="/interview" element={<Interview />} />
             <Route path="/documents" element={<Documents />} />
-            <Route path="/training" element={<Training />} />
+          <Route path="/training" element={<Training />} />
+          <Route path="/training/professional" element={
+            <div>
+              <ProfessionalTraining />
+            </div>
+          } />
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin/applications" element={<Applications />} />
             <Route path="/admin/administrators" element={<Administrators />} />

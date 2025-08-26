@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, UserPlus, Download, MessageSquare } from 'lucide-react';
+import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, UserPlus, Download, MessageSquare, Plus, Edit, Trash2, Upload } from 'lucide-react';
+import TrainingManagementTab from './TrainingManagementTab';
+import UploadsManagementTab from './UploadsManagementTab';
 
 interface DoctorApplication {
   id: string;
@@ -254,6 +256,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="applications">Candidaturas</TabsTrigger>
             <TabsTrigger value="management">Gestão de Usuários</TabsTrigger>
             <TabsTrigger value="training">Treinamentos</TabsTrigger>
+            <TabsTrigger value="uploads">Uploads</TabsTrigger>
             <TabsTrigger value="admins">Administradores</TabsTrigger>
           </TabsList>
 
@@ -512,62 +515,11 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="training">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestão de Treinamentos</CardTitle>
-                <CardDescription>
-                  Configure vídeos e materiais de treinamento (DEMO)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
-                        <Play className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">Introdução ao Sistema</h3>
-                        <p className="text-sm text-muted-foreground">Vídeo de boas-vindas e orientações iniciais</p>
-                        <div className="flex items-center gap-4 mt-1">
-                          <span className="text-xs text-muted-foreground">15 min</span>
-                          <Badge variant="secondary">Ativo</Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <FileText className="h-4 w-4 mr-1" />
-                      Editar
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
-                        <Play className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">Protocolos de Atendimento</h3>
-                        <p className="text-sm text-muted-foreground">Procedimentos e diretrizes para atendimento</p>
-                        <div className="flex items-center gap-4 mt-1">
-                          <span className="text-xs text-muted-foreground">30 min</span>
-                          <Badge variant="secondary">Ativo</Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <FileText className="h-4 w-4 mr-1" />
-                      Editar
-                    </Button>
-                  </div>
+            <TrainingManagementTab />
+          </TabsContent>
 
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p className="text-sm">Modo de desenvolvimento ativo</p>
-                    <p className="text-xs">Funcionalidade completa será conectada ao banco de dados em breve</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="uploads">
+            <UploadsManagementTab />
           </TabsContent>
 
           <TabsContent value="admins">
