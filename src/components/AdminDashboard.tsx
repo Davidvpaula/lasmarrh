@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, UserPlus, Download, MessageSquare, Plus, Edit, Trash2, Upload } from 'lucide-react';
+import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, UserPlus, Download, MessageSquare, Plus, Edit, Trash2, Upload, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import TrainingManagementTab from './TrainingManagementTab';
 import UploadsManagementTab from './UploadsManagementTab';
 
@@ -52,7 +52,7 @@ const mockProfile = {
 const AdminDashboard = () => {
   const [applications, setApplications] = useState<DoctorApplication[]>([]);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(false); // Desabilitado para desenvolvimento
+  const [loading, setLoading] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<DoctorApplication | null>(null);
   const [newAdminData, setNewAdminData] = useState({
     full_name: '',
@@ -120,9 +120,7 @@ const AdminDashboard = () => {
     window.location.href = '/';
   };
 
-  // Funções desabilitadas para desenvolvimento - usando mock data
   const updateStageStatus = async (applicationId: string, stageNumber: number, status: string, notes: string = '') => {
-    // Mock function - em produção conectaria ao Supabase
     toast({
       title: "Status atualizado (DEMO)",
       description: "Em desenvolvimento - mudanças não são persistidas.",
@@ -130,7 +128,6 @@ const AdminDashboard = () => {
   };
 
   const createAdmin = async () => {
-    // Mock function - em produção conectaria ao Supabase
     toast({
       title: "Admin criado (DEMO)",
       description: "Em desenvolvimento - mudanças não são persistidas.",
@@ -180,20 +177,24 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background animate-fade-in">
       {/* Header */}
-      <header className="bg-card border-b shadow-sm">
+      <header className="bg-card border-b shadow-sm sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-foreground">RH Pulse</h1>
+            <div className="flex items-center animate-fade-in">
+              <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">RH Pulse</h1>
               <span className="ml-4 text-sm text-muted-foreground">Painel Administrativo</span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 animate-fade-in">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-success/10 border border-success/20">
+                <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                <span className="text-xs text-success-foreground">Sistema Online</span>
+              </div>
               <span className="text-sm text-muted-foreground">
                 Olá, {mockProfile?.full_name}
               </span>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="hover-scale">
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
               </Button>
@@ -204,199 +205,184 @@ const AdminDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
+          <Card className="hover-scale transition-all duration-300 hover:shadow-lg border-l-4 border-l-primary">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Candidatos</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 bg-primary/10 rounded-full">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{applications.length}</div>
-              <p className="text-xs text-muted-foreground">médicos cadastrados</p>
+              <div className="text-3xl font-bold text-primary">{applications.length}</div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" />
+                médicos cadastrados
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover-scale transition-all duration-300 hover:shadow-lg border-l-4 border-l-warning">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Entrevistas Pendentes</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 bg-warning/10 rounded-full">
+                <Clock className="h-4 w-4 text-warning" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{getStageStatusCount(2).pending}</div>
-              <p className="text-xs text-muted-foreground">aguardando entrevista</p>
+              <div className="text-3xl font-bold text-warning">{getStageStatusCount(2).pending}</div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                aguardando entrevista
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover-scale transition-all duration-300 hover:shadow-lg border-l-4 border-l-accent">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Documentos para Revisar</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 bg-accent/10 rounded-full">
+                <FileText className="h-4 w-4 text-accent" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{getStageStatusCount(3).pending}</div>
-              <p className="text-xs text-muted-foreground">documentações pendentes</p>
+              <div className="text-3xl font-bold text-accent">{getStageStatusCount(3).pending}</div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <FileText className="h-3 w-3" />
+                documentações pendentes
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover-scale transition-all duration-300 hover:shadow-lg border-l-4 border-l-success">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Processos Concluídos</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 bg-success/10 rounded-full">
+                <CheckCircle className="h-4 w-4 text-success" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{getStageStatusCount(5).completed}</div>
-              <p className="text-xs text-muted-foreground">candidatos aprovados</p>
+              <div className="text-3xl font-bold text-success">{getStageStatusCount(5).completed}</div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" />
+                candidatos aprovados
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="applications">Candidaturas</TabsTrigger>
-            <TabsTrigger value="management">Gestão de Usuários</TabsTrigger>
-            <TabsTrigger value="training">Treinamentos</TabsTrigger>
-            <TabsTrigger value="uploads">Uploads</TabsTrigger>
-            <TabsTrigger value="admins">Administradores</TabsTrigger>
+        <Tabs defaultValue="applications" className="space-y-6 animate-fade-in">
+          <TabsList className="grid w-full grid-cols-5 bg-muted/30 p-1 rounded-lg">
+            <TabsTrigger value="applications" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Candidaturas</span>
+            </TabsTrigger>
+            <TabsTrigger value="training" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Play className="h-4 w-4" />
+              <span className="hidden sm:inline">Treinamentos</span>
+            </TabsTrigger>
+            <TabsTrigger value="uploads" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Upload className="h-4 w-4" />
+              <span className="hidden sm:inline">Uploads</span>
+            </TabsTrigger>
+            <TabsTrigger value="admins" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Admins</span>
+            </TabsTrigger>
+            <TabsTrigger value="management" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <MessageSquare className="h-4 w-4" />
+              <span className="hidden sm:inline">Gestão</span>
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="applications">
-            <Card>
-              <CardHeader>
-                <CardTitle>Lista de Candidatos</CardTitle>
-                <CardDescription>
-                  Gerencie todas as candidaturas e seu progresso
-                </CardDescription>
+          <TabsContent value="applications" className="animate-fade-in">
+            <Card className="shadow-md border-0 bg-card/50 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-primary" />
+                      Lista de Candidatos
+                    </CardTitle>
+                    <CardDescription>
+                      Gerencie todas as candidaturas e seu progresso em tempo real
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline" className="bg-primary/10 text-primary">
+                    {applications.length} Candidatos
+                  </Badge>
+                </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="space-y-4">
-                  {applications.map((app) => (
-                    <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{app.profiles.full_name}</h3>
-                        <p className="text-sm text-muted-foreground">{app.profiles.email}</p>
-                        {app.profiles.crm && (
-                          <p className="text-sm text-muted-foreground">CRM: {app.profiles.crm}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="text-sm font-medium">
-                            Etapa {app.current_stage}: {getStageName(app.current_stage)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Criado em {new Date(app.created_at).toLocaleDateString('pt-BR')}
-                          </p>
+                  {applications.map((app, index) => (
+                    <Card key={app.id} className="hover-scale transition-all duration-300 hover:shadow-lg border-l-4 border-l-primary/20 hover:border-l-primary animate-fade-in" 
+                          style={{ animationDelay: `${index * 100}ms` }}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center text-white font-semibold">
+                                {app.profiles.full_name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-lg">{app.profiles.full_name}</h3>
+                                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                  <MessageSquare className="h-3 w-3" />
+                                  {app.profiles.email}
+                                </p>
+                              </div>
+                            </div>
+                            {app.profiles.crm && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+                                <FileText className="h-3 w-3" />
+                                CRM: {app.profiles.crm}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant={app.current_stage >= 3 ? "secondary" : "outline"} className="bg-accent/10 text-accent">
+                                  Etapa {app.current_stage}
+                                </Badge>
+                                <span className="text-sm font-medium">{getStageName(app.current_stage)}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {new Date(app.created_at).toLocaleDateString('pt-BR')}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm" onClick={() => setSelectedApplication(app)} className="hover-scale">
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Ver Detalhes
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>Detalhes da Candidatura</DialogTitle>
+                                    <DialogDescription>
+                                      Informações completas para {selectedApplication?.profiles.full_name}
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  {selectedApplication && (
+                                    <div className="space-y-6">
+                                      <div className="text-center">
+                                        <p className="text-muted-foreground">Modo DEMO - Alterações não são salvas</p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" size="sm" onClick={() => setSelectedApplication(app)}>
-                                <Eye className="h-4 w-4 mr-1" />
-                                Visualizar
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>Detalhes da Candidatura</DialogTitle>
-                                <DialogDescription>
-                                  Informações completas e gestão de etapas para {selectedApplication?.profiles.full_name}
-                                </DialogDescription>
-                              </DialogHeader>
-                              {selectedApplication && (
-                                <div className="space-y-6">
-                                  {/* Informações Pessoais */}
-                                  <Card>
-                                    <CardHeader>
-                                      <CardTitle className="text-lg">Informações Pessoais</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="grid grid-cols-2 gap-4">
-                                      <div>
-                                        <Label className="text-sm font-medium">Nome Completo</Label>
-                                        <p className="text-sm">{selectedApplication.profiles.full_name}</p>
-                                      </div>
-                                      <div>
-                                        <Label className="text-sm font-medium">Email</Label>
-                                        <p className="text-sm">{selectedApplication.profiles.email}</p>
-                                      </div>
-                                      <div>
-                                        <Label className="text-sm font-medium">CRM</Label>
-                                        <p className="text-sm">{selectedApplication.profiles.crm || 'Não informado'}</p>
-                                      </div>
-                                      <div>
-                                        <Label className="text-sm font-medium">Telefone</Label>
-                                        <p className="text-sm">{selectedApplication.profiles.phone || 'Não informado'}</p>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-
-                                  {/* Progresso das Etapas */}
-                                  <Card>
-                                    <CardHeader>
-                                      <CardTitle className="text-lg">Progresso das Etapas</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                      <div className="space-y-4">
-                                        {selectedApplication.stage_progress
-                                          .sort((a, b) => a.stage_number - b.stage_number)
-                                          .map((stage) => (
-                                          <div key={stage.stage_number} className="border rounded-lg p-4">
-                                            <div className="flex items-center justify-between mb-3">
-                                              <div>
-                                                <h4 className="font-medium">
-                                                  Etapa {stage.stage_number}: {getStageName(stage.stage_number)}
-                                                </h4>
-                                                {getStatusBadge(stage.status)}
-                                              </div>
-                                              <div className="flex gap-2">
-                                                {stage.status === 'in_progress' && (
-                                                  <>
-                                                    <Button
-                                                      size="sm"
-                                                      onClick={() => updateStageStatus(selectedApplication.id, stage.stage_number, 'approved')}
-                                                      className="bg-success hover:bg-success/90"
-                                                    >
-                                                      <CheckCircle className="h-4 w-4 mr-1" />
-                                                      Aprovar
-                                                    </Button>
-                                                    <Button
-                                                      size="sm"
-                                                      variant="destructive"
-                                                      onClick={() => updateStageStatus(selectedApplication.id, stage.stage_number, 'rejected')}
-                                                    >
-                                                      <XCircle className="h-4 w-4 mr-1" />
-                                                      Reprovar
-                                                    </Button>
-                                                  </>
-                                                )}
-                                              </div>
-                                            </div>
-                                            {stage.notes && (
-                                              <div className="mt-2">
-                                                <Label className="text-sm font-medium">Observações:</Label>
-                                                <p className="text-sm text-muted-foreground">{stage.notes}</p>
-                                              </div>
-                                            )}
-                                            {stage.completed_at && (
-                                              <div className="mt-2">
-                                                <Label className="text-sm font-medium">Concluída em:</Label>
-                                                <p className="text-sm text-muted-foreground">
-                                                  {new Date(stage.completed_at).toLocaleString('pt-BR')}
-                                                </p>
-                                              </div>
-                                            )}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
                   
                   {applications.length === 0 && (
@@ -404,111 +390,6 @@ const AdminDashboard = () => {
                       Nenhuma candidatura encontrada
                     </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="management">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestão de Usuários</CardTitle>
-                <CardDescription>
-                  Gerencie candidatos, aprove etapas e acompanhe formulários
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {/* Estatísticas por Etapa */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[1, 2, 3, 4, 5].map((stageNumber) => {
-                      const stats = getStageStatusCount(stageNumber);
-                      return (
-                        <Card key={stageNumber}>
-                          <CardHeader>
-                            <CardTitle className="text-lg">
-                              Etapa {stageNumber}: {getStageName(stageNumber)}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <span className="text-sm">Concluídas:</span>
-                                <Badge variant="secondary" className="bg-success text-success-foreground">
-                                  {stats.completed}
-                                </Badge>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm">Pendentes:</span>
-                                <Badge variant="secondary" className="bg-warning text-warning-foreground">
-                                  {stats.pending}
-                                </Badge>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm">Bloqueadas:</span>
-                                <Badge variant="outline">{stats.blocked}</Badge>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-
-                  {/* Lista de candidatos que precisam de ação */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Candidatos Pendentes de Aprovação</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {applications
-                          .filter(app => 
-                            app.stage_progress.some(stage => stage.status === 'in_progress')
-                          )
-                          .map((app) => {
-                            const pendingStage = app.stage_progress.find(stage => stage.status === 'in_progress');
-                            return (
-                              <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg bg-warning/5">
-                                <div className="flex-1">
-                                  <h3 className="font-semibold">{app.profiles.full_name}</h3>
-                                  <p className="text-sm text-muted-foreground">
-                                    Etapa {pendingStage?.stage_number}: {getStageName(pendingStage?.stage_number || 0)}
-                                  </p>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => updateStageStatus(app.id, pendingStage?.stage_number || 0, 'approved')}
-                                    className="bg-success hover:bg-success/90"
-                                  >
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Aprovar
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => updateStageStatus(app.id, pendingStage?.stage_number || 0, 'rejected')}
-                                  >
-                                    <XCircle className="h-4 w-4 mr-1" />
-                                    Reprovar
-                                  </Button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        
-                        {applications.filter(app => 
-                          app.stage_progress.some(stage => stage.status === 'in_progress')
-                        ).length === 0 && (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>Nenhum candidato pendente de aprovação</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
               </CardContent>
             </Card>
@@ -525,59 +406,59 @@ const AdminDashboard = () => {
           <TabsContent value="admins">
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Administradores</CardTitle>
+                    <CardTitle>Administradores do Sistema</CardTitle>
                     <CardDescription>
-                      Gerencie contas de administradores do sistema
+                      Gerencie os usuários com acesso administrativo
                     </CardDescription>
                   </div>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button>
+                      <Button className="bg-gradient-primary hover:bg-primary-hover">
                         <UserPlus className="h-4 w-4 mr-2" />
-                        Novo Admin
+                        Adicionar Admin
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Criar Nova Conta de Admin</DialogTitle>
+                        <DialogTitle>Criar Novo Administrador</DialogTitle>
                         <DialogDescription>
-                          Preencha os dados para criar uma nova conta de administrador
+                          Adicione um novo usuário com permissões administrativas
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="full_name">Nome Completo</Label>
+                          <Label htmlFor="admin_name">Nome Completo</Label>
                           <Input
-                            id="full_name"
+                            id="admin_name"
                             value={newAdminData.full_name}
-                            onChange={(e) => setNewAdminData({...newAdminData, full_name: e.target.value})}
+                            onChange={(e) => setNewAdminData({ ...newAdminData, full_name: e.target.value })}
                             placeholder="Digite o nome completo"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="email">Email</Label>
+                          <Label htmlFor="admin_email">Email</Label>
                           <Input
-                            id="email"
+                            id="admin_email"
                             type="email"
                             value={newAdminData.email}
-                            onChange={(e) => setNewAdminData({...newAdminData, email: e.target.value})}
+                            onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
                             placeholder="Digite o email"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="password">Senha</Label>
+                          <Label htmlFor="admin_password">Senha Temporária</Label>
                           <Input
-                            id="password"
+                            id="admin_password"
                             type="password"
                             value={newAdminData.password}
-                            onChange={(e) => setNewAdminData({...newAdminData, password: e.target.value})}
-                            placeholder="Digite a senha"
+                            onChange={(e) => setNewAdminData({ ...newAdminData, password: e.target.value })}
+                            placeholder="Digite uma senha temporária"
                           />
                         </div>
                         <Button onClick={createAdmin} className="w-full">
-                          Criar Admin
+                          Criar Administrador
                         </Button>
                       </div>
                     </DialogContent>
@@ -588,29 +469,42 @@ const AdminDashboard = () => {
                 <div className="space-y-4">
                   {admins.map((admin) => (
                     <div key={admin.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
+                      <div>
                         <h3 className="font-semibold">{admin.full_name}</h3>
                         <p className="text-sm text-muted-foreground">{admin.email}</p>
+                        <Badge variant="outline" className="mt-1">
+                          {admin.role}
+                        </Badge>
+                      </div>
+                      <div className="text-right">
                         <p className="text-xs text-muted-foreground">
                           Criado em {new Date(admin.created_at).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
-                      <Badge variant="secondary" className="bg-primary text-primary-foreground">
-                        Admin
-                      </Badge>
                     </div>
                   ))}
-                  
-                  {admins.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <UserPlus className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Nenhum administrador encontrado</p>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="management">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestão de Usuários e Sistema</CardTitle>
+                <CardDescription>
+                  Ferramentas avançadas de administração
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Funcionalidades de gestão em desenvolvimento</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
       </div>
     </div>

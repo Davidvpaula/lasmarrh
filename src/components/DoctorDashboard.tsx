@@ -118,20 +118,24 @@ const DoctorDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background animate-fade-in">
       {/* Header */}
-      <header className="bg-card border-b shadow-sm">
+      <header className="bg-card border-b shadow-sm sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-foreground">RH Pulse</h1>
+            <div className="flex items-center animate-fade-in">
+              <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">RH Pulse</h1>
               <span className="ml-4 text-sm text-muted-foreground">Painel do Candidato</span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 animate-fade-in">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <span className="text-xs text-primary">Em Processo</span>
+              </div>
               <span className="text-sm text-muted-foreground">
                 Olá, {mockProfile?.full_name}
               </span>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="hover-scale">
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
               </Button>
@@ -142,38 +146,57 @@ const DoctorDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Progress Overview */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Progresso do Processo Seletivo</CardTitle>
-            <CardDescription>
-              Acompanhe seu progresso através das etapas do processo
+        <Card className="mb-8 shadow-lg border-0 bg-gradient-to-r from-primary/5 via-background to-accent/5 animate-fade-in">
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4 shadow-lg">
+              <Award className="h-8 w-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl">Progresso do Processo Seletivo</CardTitle>
+            <CardDescription className="text-base">
+              Acompanhe seu progresso e próximas etapas do processo de seleção
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="text-center">
             <div className="space-y-4">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-sm font-medium">
                 <span>Progresso Geral</span>
-                <span>{Math.round(calculateProgress())}% concluído</span>
+                <span className="text-primary">{Math.round(calculateProgress())}% concluído</span>
               </div>
-              <Progress value={calculateProgress()} className="h-2" />
+              <div className="relative">
+                <Progress value={calculateProgress()} className="h-3 bg-muted" />
+                <div className="absolute inset-0 bg-gradient-primary opacity-90 rounded-full" 
+                     style={{ width: `${calculateProgress()}%` }}></div>
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Início</span>
+                <span className={calculateProgress() >= 50 ? "text-primary font-medium" : ""}>Meio do processo</span>
+                <span className={calculateProgress() >= 100 ? "text-success font-medium" : ""}>Conclusão</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Main Process Stages */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold mb-4">Processo Seletivo - Etapas Obrigatórias</h2>
-          {STAGES.filter(stage => !stage.optional).map((stage) => {
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1 h-8 bg-gradient-primary rounded-full"></div>
+            <h2 className="text-2xl font-bold">Processo Seletivo - Etapas Obrigatórias</h2>
+          </div>
+          {STAGES.filter(stage => !stage.optional).map((stage, index) => {
             const status = getStageStatus(stage.id);
             const stageData = stageProgress.find(s => s.stage_number === stage.id);
             const Icon = stage.icon;
 
             return (
-              <Card key={stage.id} className={`transition-all duration-200 ${
-                status === 'available' || status === 'in_progress' 
-                  ? 'ring-2 ring-primary ring-opacity-50 shadow-md' 
-                  : ''
-              }`}>
+              <Card key={stage.id} 
+                    className={`transition-all duration-300 hover-scale animate-fade-in ${
+                      status === 'available' || status === 'in_progress' 
+                        ? 'ring-2 ring-primary ring-opacity-50 shadow-xl border-primary/20 bg-gradient-to-r from-primary/5 to-transparent' 
+                        : status === 'completed' || status === 'approved'
+                        ? 'border-success/30 bg-gradient-to-r from-success/5 to-transparent'
+                        : 'hover:shadow-md'
+                    }`}
+                    style={{ animationDelay: `${index * 150}ms` }}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">

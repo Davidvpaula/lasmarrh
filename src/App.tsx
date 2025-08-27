@@ -36,12 +36,8 @@ function AppContent() {
             <Route path="/dashboard/admin" element={<AdminDashboard />} />
             <Route path="/interview" element={<Interview />} />
             <Route path="/documents" element={<Documents />} />
-          <Route path="/training" element={<Training />} />
-          <Route path="/training/professional" element={
-            <div>
-              <ProfessionalTraining />
-            </div>
-          } />
+            <Route path="/training" element={<ProfessionalTraining />} />
+            <Route path="/training/professional" element={<ProfessionalTraining />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin/applications" element={<Applications />} />
             <Route path="/admin/administrators" element={<Administrators />} />
