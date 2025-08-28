@@ -9,7 +9,9 @@ import {
   Users,
   Shield,
   Calendar,
-  Upload
+  Upload,
+  MessageSquare,
+  FolderOpen
 } from "lucide-react"
 import {
   Sidebar,
@@ -48,10 +50,10 @@ export function AppSidebar() {
 
   const adminItems = [
     { title: "Início", url: "/", icon: Home },
-    { title: "Seleção Dashboard", url: "/dashboard", icon: Settings },
-    { title: "Dashboard Admin", url: "/dashboard/admin", icon: Shield },
     { title: "Candidatos", url: "/admin/applications", icon: Users },
-    { title: "Administradores", url: "/admin/administrators", icon: Shield },
+    { title: "Entrevista", url: "/admin/interviews", icon: MessageSquare },
+    { title: "Formulário", url: "/admin/forms", icon: FolderOpen },
+    { title: "Treinamento", url: "/admin/training", icon: GraduationCap },
     { title: "Uploads", url: "/admin/uploads", icon: Upload },
     { title: "Configurações", url: "/admin/settings", icon: Settings },
   ]

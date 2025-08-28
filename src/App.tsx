@@ -14,6 +14,9 @@ import Applications from './pages/admin/Applications';
 import Administrators from './pages/admin/Administrators';
 import Uploads from './pages/admin/Uploads';
 import Settings from './pages/admin/Settings';
+import Interviews from './pages/admin/Interviews';
+import Forms from './pages/admin/Forms';
+import AdminTraining from './pages/admin/Training';
 import NotFound from './pages/NotFound';
 import { AuthProvider } from './hooks/useAuth';
 import { Toaster } from '@/components/ui/toaster';
@@ -40,6 +43,9 @@ function AppContent() {
             <Route path="/training/professional" element={<ProfessionalTraining />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin/applications" element={<Applications />} />
+            <Route path="/admin/interviews" element={<Interviews />} />
+            <Route path="/admin/forms" element={<Forms />} />
+            <Route path="/admin/training" element={<AdminTraining />} />
             <Route path="/admin/administrators" element={<Administrators />} />
             <Route path="/admin/uploads" element={<Uploads />} />
             <Route path="/admin/settings" element={<Settings />} />
