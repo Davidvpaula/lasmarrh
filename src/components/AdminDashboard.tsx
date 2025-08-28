@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, UserPlus, Download, MessageSquare, Plus, Edit, Trash2, Upload, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import TrainingManagementTab from './TrainingManagementTab';
 import UploadsManagementTab from './UploadsManagementTab';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DoctorApplication {
   id: string;
@@ -121,10 +122,68 @@ const AdminDashboard = () => {
   };
 
   const updateStageStatus = async (applicationId: string, stageNumber: number, status: string, notes: string = '') => {
-    toast({
-      title: "Status atualizado (DEMO)",
-      description: "Em desenvolvimento - mudanças não são persistidas.",
-    });
+    try {
+      setLoading(true);
+      
+      // Update the specific stage
+      await supabase
+        .from('stage_progress')
+        .update({
+          status: status as 'completed' | 'in_progress' | 'locked' | 'rejected' | 'available' | 'approved',
+          completed_at: status === 'approved' ? new Date().toISOString() : null,
+          notes: notes,
+          approved_by: status === 'approved' ? mockProfile.user_id : null
+        })
+        .eq('application_id', applicationId)
+        .eq('stage_number', stageNumber);
+
+      // If approving interview (stage 2), unlock documents stage (stage 3)
+      if (status === 'approved' && stageNumber === 2) {
+        await supabase
+          .from('stage_progress')
+          .update({ status: 'available' })
+          .eq('application_id', applicationId)
+          .eq('stage_number', 3);
+
+        // Update current stage in applications table
+        await supabase
+          .from('applications')
+          .update({ current_stage: 3 })
+          .eq('id', applicationId);
+      }
+
+      toast({
+        title: status === 'approved' ? "Candidato aprovado!" : "Status atualizado",
+        description: status === 'approved' ? "O candidato pode prosseguir para a próxima etapa." : "Status da etapa foi atualizado.",
+      });
+
+      // Refresh the applications list
+      setApplications(mockApplications.map(app => 
+        app.id === applicationId 
+          ? { 
+              ...app, 
+              current_stage: status === 'approved' && stageNumber === 2 ? 3 : app.current_stage,
+              stage_progress: app.stage_progress.map(stage => 
+                stage.stage_number === stageNumber 
+                  ? { ...stage, status: status, completed_at: status === 'approved' ? new Date().toISOString() : stage.completed_at, notes: notes }
+                  : stage.stage_number === 3 && status === 'approved' && stageNumber === 2
+                    ? { ...stage, status: 'available' }
+                    : stage
+              )
+            }
+          : app
+      ));
+
+    } catch (error) {
+      console.error('Error updating stage status:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status da etapa.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const createAdmin = async () => {
@@ -371,9 +430,127 @@ const AdminDashboard = () => {
                                   </DialogHeader>
                                   {selectedApplication && (
                                     <div className="space-y-6">
-                                      <div className="text-center">
-                                        <p className="text-muted-foreground">Modo DEMO - Alterações não são salvas</p>
-                                      </div>
+                                      {/* Informações Pessoais */}
+                                      <Card>
+                                        <CardHeader>
+                                          <CardTitle className="flex items-center gap-2">
+                                            <Users className="h-5 w-5 text-primary" />
+                                            Informações Pessoais
+                                          </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                          <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                              <Label className="text-sm font-medium">Nome Completo</Label>
+                                              <p className="text-sm text-muted-foreground">{selectedApplication.profiles.full_name}</p>
+                                            </div>
+                                            <div>
+                                              <Label className="text-sm font-medium">Email</Label>
+                                              <p className="text-sm text-muted-foreground">{selectedApplication.profiles.email}</p>
+                                            </div>
+                                            <div>
+                                              <Label className="text-sm font-medium">CRM</Label>
+                                              <p className="text-sm text-muted-foreground">{selectedApplication.profiles.crm}</p>
+                                            </div>
+                                            <div>
+                                              <Label className="text-sm font-medium">Telefone</Label>
+                                              <p className="text-sm text-muted-foreground">{selectedApplication.profiles.phone}</p>
+                                            </div>
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+
+                                      {/* Progresso das Etapas */}
+                                      <Card>
+                                        <CardHeader>
+                                          <CardTitle className="flex items-center gap-2">
+                                            <CheckCircle className="h-5 w-5 text-primary" />
+                                            Progresso das Etapas
+                                          </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                          <div className="space-y-4">
+                                            {selectedApplication.stage_progress.map((stage) => {
+                                              let interviewData = null;
+                                              if (stage.stage_number === 2 && stage.notes) {
+                                                try {
+                                                  interviewData = JSON.parse(stage.notes);
+                                                } catch (e) {
+                                                  // Ignore parsing errors
+                                                }
+                                              }
+
+                                              return (
+                                                <div key={stage.stage_number} className="border rounded-lg p-4">
+                                                  <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="font-semibold">Etapa {stage.stage_number}: {getStageName(stage.stage_number)}</h4>
+                                                    {getStatusBadge(stage.status)}
+                                                  </div>
+                                                  
+                                                  {/* Interview Form Data */}
+                                                  {stage.stage_number === 2 && interviewData && (
+                                                    <div className="mt-4 space-y-3 bg-muted/30 p-4 rounded-lg">
+                                                      <h5 className="font-medium text-sm text-primary">Respostas da Entrevista:</h5>
+                                                      <div className="space-y-3">
+                                                        <div>
+                                                          <Label className="text-xs font-medium">Motivação:</Label>
+                                                          <p className="text-sm text-muted-foreground mt-1">{interviewData.motivation}</p>
+                                                        </div>
+                                                        <div>
+                                                          <Label className="text-xs font-medium">Experiência:</Label>
+                                                          <p className="text-sm text-muted-foreground mt-1">{interviewData.experience}</p>
+                                                        </div>
+                                                        <div>
+                                                          <Label className="text-xs font-medium">Disponibilidade:</Label>
+                                                          <p className="text-sm text-muted-foreground mt-1">{interviewData.availability}</p>
+                                                        </div>
+                                                        <div>
+                                                          <Label className="text-xs font-medium">Expectativas:</Label>
+                                                          <p className="text-sm text-muted-foreground mt-1">{interviewData.expectations}</p>
+                                                        </div>
+                                                      </div>
+                                                      
+                                                      {/* Admin Actions for Interview */}
+                                                      {stage.status === 'in_progress' && (
+                                                        <div className="flex gap-2 mt-4">
+                                                          <Button 
+                                                            size="sm" 
+                                                            onClick={() => updateStageStatus(selectedApplication.id, 2, 'approved', 'Entrevista aprovada pelo administrador')}
+                                                            className="bg-success hover:bg-success/80"
+                                                          >
+                                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                                            Aprovar Entrevista
+                                                          </Button>
+                                                          <Button 
+                                                            size="sm" 
+                                                            variant="destructive"
+                                                            onClick={() => updateStageStatus(selectedApplication.id, 2, 'rejected', 'Entrevista rejeitada pelo administrador')}
+                                                          >
+                                                            <XCircle className="h-4 w-4 mr-1" />
+                                                            Rejeitar
+                                                          </Button>
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  )}
+                                                  
+                                                  {stage.completed_at && (
+                                                    <p className="text-xs text-muted-foreground mt-2">
+                                                      Concluída em: {new Date(stage.completed_at).toLocaleDateString('pt-BR')}
+                                                    </p>
+                                                  )}
+                                                  
+                                                  {stage.notes && stage.stage_number !== 2 && (
+                                                    <p className="text-sm text-muted-foreground mt-2">
+                                                      <strong>Notas:</strong> {stage.notes}
+                                                    </p>
+                                                  )}
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </CardContent>
+                                      </Card>
                                     </div>
                                   )}
                                 </DialogContent>
