@@ -39,8 +39,6 @@ export function AppSidebar() {
     isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-accent"
 
   const doctorItems = [
-    { title: "Início", url: "/", icon: Home },
-    { title: "Seleção Dashboard", url: "/dashboard", icon: Settings },
     { title: "Dashboard Profissional", url: "/dashboard/professional", icon: User },
     { title: "Entrevista", url: "/interview", icon: Calendar },
     { title: "Documentos", url: "/documents", icon: FileText },
