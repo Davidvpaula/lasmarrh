@@ -73,6 +73,18 @@ const Documents = () => {
 
         if (stage) {
           setStageStatus(stage.status);
+          
+          // Check if user has admin approval to access this stage
+          if (stage.status === 'locked') {
+            toast({
+              title: "Acesso Bloqueado",
+              description: "Aguardando liberação do administrador para continuar esta etapa.",
+              variant: "destructive",
+            });
+            setTimeout(() => navigate('/interview'), 2000);
+            return;
+          }
+          
           if (stage.notes) {
             try {
               const savedData = JSON.parse(stage.notes);
@@ -181,6 +193,36 @@ const Documents = () => {
       setLoading(false);
     }
   };
+
+  if (stageStatus === 'locked') {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <Card className="border-warning">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <X className="h-6 w-6 text-warning" />
+                <div>
+                  <CardTitle className="text-warning">Acesso Restrito</CardTitle>
+                  <CardDescription>
+                    Falta a liberação do administrador para continuar essa etapa.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Você será redirecionado para a página de entrevista. Aguarde a aprovação do administrador para prosseguir.
+              </p>
+              <Button onClick={() => navigate('/interview')} className="w-full">
+                Voltar para Entrevista
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (stageStatus === 'completed' || stageStatus === 'approved') {
     return (
