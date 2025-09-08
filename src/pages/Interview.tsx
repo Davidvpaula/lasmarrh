@@ -6,18 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, Clock, ChevronDown, X } from 'lucide-react';
 
 interface InterviewForm {
   motivation: string;
   experience: string;
   expectations: string;
   availability: {
-    days: string[];
-    periods: string[];
+    [day: string]: string[]; // Each day maps to an array of selected time slots
   };
 }
 
@@ -28,10 +29,7 @@ const Interview = () => {
     motivation: '',
     experience: '',
     expectations: '',
-    availability: {
-      days: [],
-      periods: []
-    }
+    availability: {}
   });
   const [loading, setLoading] = useState(false);
   const [stageStatus, setStageStatus] = useState('');
@@ -46,11 +44,10 @@ const Interview = () => {
     { value: 'domingo', label: 'Domingo' }
   ];
 
-  const TIME_PERIODS = [
-    { value: 'manha', label: 'Manhã (06:00 - 12:00)' },
-    { value: 'tarde', label: 'Tarde (12:00 - 18:00)' },
-    { value: 'noite', label: 'Noite (18:00 - 00:00)' },
-    { value: 'madrugada', label: 'Madrugada (00:00 - 06:00)' }
+  const TIME_SLOTS = [
+    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+    '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+    '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
   ];
 
   useEffect(() => {
@@ -79,13 +76,10 @@ const Interview = () => {
             try {
               const savedForm = JSON.parse(stage.notes);
               // Ensure backward compatibility with old format
-              if (typeof savedForm.availability === 'string') {
+              if (savedForm.availability && (savedForm.availability.days || savedForm.availability.periods)) {
                 setForm({
                   ...savedForm,
-                  availability: {
-                    days: [],
-                    periods: []
-                  }
+                  availability: {}
                 });
               } else {
                 setForm(savedForm);
@@ -101,38 +95,40 @@ const Interview = () => {
     }
   };
 
-  const handleDayChange = (day: string, checked: boolean) => {
+  const handleTimeSlotChange = (day: string, timeSlot: string, checked: boolean) => {
     setForm(prev => ({
       ...prev,
       availability: {
         ...prev.availability,
-        days: checked 
-          ? [...prev.availability.days, day]
-          : prev.availability.days.filter(d => d !== day)
+        [day]: checked
+          ? [...(prev.availability[day] || []), timeSlot]
+          : (prev.availability[day] || []).filter(slot => slot !== timeSlot)
       }
     }));
   };
 
-  const handlePeriodChange = (period: string, checked: boolean) => {
+  const removeTimeSlot = (day: string, timeSlot: string) => {
     setForm(prev => ({
       ...prev,
       availability: {
         ...prev.availability,
-        periods: checked
-          ? [...prev.availability.periods, period]
-          : prev.availability.periods.filter(p => p !== period)
+        [day]: (prev.availability[day] || []).filter(slot => slot !== timeSlot)
       }
     }));
+  };
+
+  const hasAnyAvailability = () => {
+    return Object.values(form.availability).some(slots => slots && slots.length > 0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate availability selection
-    if (form.availability.days.length === 0 || form.availability.periods.length === 0) {
+    if (!hasAnyAvailability()) {
       toast({
         title: "Erro de Validação",
-        description: "Por favor, selecione pelo menos um dia da semana e um período de disponibilidade.",
+        description: "Por favor, selecione pelo menos um horário de disponibilidade.",
         variant: "destructive",
       });
       return;
@@ -279,77 +275,91 @@ const Interview = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Days of the week */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Dias da Semana</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {/* Days of the week with time selection */}
+                  <div className="space-y-4">
+                    <Label className="text-sm font-medium">Selecione os dias e horários disponíveis</Label>
+                    <div className="space-y-3">
                       {DAYS_OF_WEEK.map((day) => (
-                        <div key={day.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={day.value}
-                            checked={form.availability.days.includes(day.value)}
-                            onCheckedChange={(checked) => 
-                              handleDayChange(day.value, checked as boolean)
-                            }
-                          />
-                          <Label
-                            htmlFor={day.value}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {day.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Time periods */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Períodos do Dia</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {TIME_PERIODS.map((period) => (
-                        <div key={period.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={period.value}
-                            checked={form.availability.periods.includes(period.value)}
-                            onCheckedChange={(checked) => 
-                              handlePeriodChange(period.value, checked as boolean)
-                            }
-                          />
-                          <Label
-                            htmlFor={period.value}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {period.label}
-                          </Label>
+                        <div key={day.value} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <Label className="text-sm font-medium">{day.label}</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 px-3"
+                                >
+                                  Selecionar Horários
+                                  <ChevronDown className="ml-2 h-3 w-3" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 bg-background border shadow-lg z-50">
+                                <div className="space-y-3">
+                                  <Label className="text-sm font-medium">
+                                    Horários disponíveis - {day.label}
+                                  </Label>
+                                  <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                                    {TIME_SLOTS.map((timeSlot) => (
+                                      <div key={timeSlot} className="flex items-center space-x-2">
+                                        <Checkbox
+                                          id={`${day.value}-${timeSlot}`}
+                                          checked={form.availability[day.value]?.includes(timeSlot) || false}
+                                          onCheckedChange={(checked) =>
+                                            handleTimeSlotChange(day.value, timeSlot, checked as boolean)
+                                          }
+                                        />
+                                        <Label
+                                          htmlFor={`${day.value}-${timeSlot}`}
+                                          className="text-xs cursor-pointer"
+                                        >
+                                          {timeSlot}
+                                        </Label>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                          
+                          {/* Display selected times for this day */}
+                          {form.availability[day.value] && form.availability[day.value].length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {form.availability[day.value].map((timeSlot) => (
+                                <Badge
+                                  key={timeSlot}
+                                  variant="secondary"
+                                  className="text-xs px-2 py-1 bg-primary/10 text-primary"
+                                >
+                                  {timeSlot}
+                                  <X
+                                    className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
+                                    onClick={() => removeTimeSlot(day.value, timeSlot)}
+                                  />
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Summary */}
-                  {(form.availability.days.length > 0 || form.availability.periods.length > 0) && (
+                  {hasAnyAvailability() && (
                     <div className="p-3 bg-muted/50 rounded-lg">
                       <Label className="text-sm font-medium">Resumo da Disponibilidade:</Label>
-                      <div className="mt-1 space-y-1 text-sm text-muted-foreground">
-                        {form.availability.days.length > 0 && (
-                          <p>
-                            <span className="font-medium">Dias:</span> {
-                              form.availability.days
-                                .map(day => DAYS_OF_WEEK.find(d => d.value === day)?.label)
-                                .join(', ')
-                            }
-                          </p>
-                        )}
-                        {form.availability.periods.length > 0 && (
-                          <p>
-                            <span className="font-medium">Períodos:</span> {
-                              form.availability.periods
-                                .map(period => TIME_PERIODS.find(p => p.value === period)?.label)
-                                .join(', ')
-                            }
-                          </p>
-                        )}
+                      <div className="mt-2 space-y-2 text-sm text-muted-foreground">
+                        {Object.entries(form.availability).map(([dayValue, timeSlots]) => {
+                          if (!timeSlots || timeSlots.length === 0) return null;
+                          const dayLabel = DAYS_OF_WEEK.find(d => d.value === dayValue)?.label;
+                          return (
+                            <p key={dayValue}>
+                              <span className="font-medium">{dayLabel}:</span> {timeSlots.join(', ')}
+                            </p>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
