@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useLocation, useNavigate } from "react-router-dom"
 import { 
   Home, 
   User, 
@@ -25,9 +25,14 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/hooks/useAuth"
+import { supabase } from "@/integrations/supabase/client"
+import { toast } from "@/hooks/use-toast"
 
 export function AppSidebar() {
   const { state } = useSidebar()
+  const { profile } = useAuth()
+  const navigate = useNavigate()
   const location = useLocation()
   const currentPath = location.pathname
   const collapsed = state === "collapsed"
@@ -37,6 +42,50 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-accent"
+
+  const checkStageAccess = async (stageNumber: number) => {
+    try {
+      const { data: application } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('doctor_id', profile.user_id)
+        .single();
+
+      if (application) {
+        const { data: stage } = await supabase
+          .from('stage_progress')
+          .select('status')
+          .eq('application_id', application.id)
+          .eq('stage_number', stageNumber)
+          .single();
+
+        return stage?.status !== 'locked';
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const handleNavigation = async (e: React.MouseEvent, url: string, title: string) => {
+    // Verificar acesso apenas para Documentos (stage 3) e Treinamento (stage 4)
+    if ((url === '/documents' || url === '/training') && !isAdminContext) {
+      e.preventDefault();
+      
+      const stageNumber = url === '/documents' ? 3 : 4;
+      const hasAccess = await checkStageAccess(stageNumber);
+      
+      if (!hasAccess) {
+        toast({
+          title: "Acesso Restrito",
+          description: "Falta a liberação do Administrador para continuar para as próximas etapas.",
+          variant: "destructive",
+        });
+        navigate('/interview');
+        return;
+      }
+    }
+  };
 
   const doctorItems = [
     { title: "Dashboard Profissional", url: "/dashboard/professional", icon: User },
@@ -80,7 +129,12 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className={getNavCls}>
+                    <NavLink 
+                      to={item.url} 
+                      end 
+                      className={getNavCls}
+                      onClick={(e) => handleNavigation(e, item.url, item.title)}
+                    >
                       <item.icon className="mr-3 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
