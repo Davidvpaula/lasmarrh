@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import Index from './pages/Index';
+import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import DoctorDashboard from '@/components/DoctorDashboard';
 import AdminDashboard from '@/components/AdminDashboard';
@@ -34,6 +35,7 @@ function AppContent() {
         <main className="flex-1 overflow-hidden">
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/professional" element={<DoctorDashboard />} />
             <Route path="/dashboard/admin" element={<AdminDashboard />} />

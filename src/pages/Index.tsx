@@ -18,10 +18,23 @@ const Index = () => {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Plataforma de gestão de processos seletivos para profissionais da saúde
           </p>
-          <div className="mt-8 p-4 bg-warning/10 rounded-lg border border-warning/20">
-            <p className="text-sm text-warning-foreground">
-              <strong>Modo de Desenvolvimento:</strong> Sistema de login desabilitado temporariamente
-            </p>
+          
+          {/* Authentication Buttons */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              onClick={() => handleNavigate('/auth')}
+              size="lg"
+              className="bg-gradient-primary hover:bg-primary-hover"
+            >
+              Entrar na Plataforma
+            </Button>
+            <Button 
+              onClick={() => handleNavigate('/auth')}
+              variant="outline"
+              size="lg"
+            >
+              Criar Conta
+            </Button>
           </div>
         </div>
 
