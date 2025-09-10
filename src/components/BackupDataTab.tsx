@@ -154,19 +154,39 @@ export const BackupDataTab = () => {
   const downloadBackup = (backupId: string) => {
     const backup = backups.find(b => b.id === backupId);
     if (backup) {
-      // Em um ambiente real, isso faria o download do arquivo
-      // Para demonstração, vamos simular
-      const element = document.createElement('a');
-      element.href = `data:text/plain;charset=utf-8,-- Backup simulado para ${backup.name}\n-- Criado em: ${backup.created_at}\n-- Tabelas: ${backup.tables_count}\n-- Registros: ${backup.records_count}`;
-      element.download = backup.name;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
+      try {
+        // Abordagem mais segura para download simulado
+        const element = document.createElement('a');
+        element.href = `data:text/plain;charset=utf-8,-- Backup simulado para ${backup.name}\n-- Criado em: ${backup.created_at}\n-- Tabelas: ${backup.tables_count}\n-- Registros: ${backup.records_count}`;
+        element.download = backup.name;
+        element.style.display = 'none';
+        
+        document.body.appendChild(element);
+        element.click();
+        
+        // Usar setTimeout para garantir que o click seja processado primeiro
+        setTimeout(() => {
+          try {
+            if (element.parentNode === document.body) {
+              document.body.removeChild(element);
+            }
+          } catch (error) {
+            console.warn('Elemento já foi removido:', error);
+          }
+        }, 100);
 
-      toast({
-        title: "Download iniciado",
-        description: `Download do backup ${backup.name} iniciado.`,
-      });
+        toast({
+          title: "Download iniciado",
+          description: `Download do backup ${backup.name} iniciado.`,
+        });
+      } catch (error) {
+        console.error('Erro no download:', error);
+        toast({
+          title: "Erro no download",
+          description: "Falha ao iniciar o download do backup.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
