@@ -194,9 +194,9 @@ export default function Interviews() {
           ))}
         </div>
         
-        {((interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress') || interview.status === 'approved') && (
+        {((interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress') || interview.status === 'approved' || interview.status === 'rejected') && (
           <div className="flex gap-2 mt-6 pt-4 border-t">
-            {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress') && (
+            {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress' || interview.status === 'rejected') && (
               <Button
                 onClick={() => handleStatusUpdate(interview.application_id, 'approved')}
                 className="flex items-center gap-2"
@@ -206,15 +206,17 @@ export default function Interviews() {
                 Aprovar
               </Button>
             )}
-            <Button
-              onClick={() => handleStatusUpdate(interview.application_id, 'rejected')}
-              variant="destructive"
-              className="flex items-center gap-2"
-              size="sm"
-            >
-              <XCircle className="h-4 w-4" />
-              Rejeitar
-            </Button>
+            {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress' || interview.status === 'approved') && (
+              <Button
+                onClick={() => handleStatusUpdate(interview.application_id, 'rejected')}
+                variant="destructive"
+                className="flex items-center gap-2"
+                size="sm"
+              >
+                <XCircle className="h-4 w-4" />
+                Rejeitar
+              </Button>
+            )}
           </div>
         )}
       </CardContent>
