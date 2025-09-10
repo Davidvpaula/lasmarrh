@@ -242,9 +242,15 @@ const Index = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-warning/10 p-4 rounded-lg">
-                    <div className="font-bold text-warning text-xl mb-2">R$ 300,00</div>
-                    <div className="text-sm">Suporte de TI para anúncios no seu perfil</div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="bg-warning/10 p-4 rounded-lg">
+                      <div className="font-bold text-warning text-xl mb-2">R$ 300,00</div>
+                      <div className="text-sm">Suporte de TI para anúncios no seu perfil</div>
+                    </div>
+                    <div className="bg-green-500/10 p-4 rounded-lg">
+                      <div className="font-bold text-green-600 text-xl mb-2">R$ XX,XX</div>
+                      <div className="text-sm">Tráfego pago Google ADS</div>
+                    </div>
                   </div>
 
                   <div className="border-t pt-6">
@@ -260,7 +266,7 @@ const Index = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <DollarSign className="h-6 w-6 text-success flex-shrink-0" />
-                        <span><strong>Dedução por consulta: 27%</strong></span>
+                        <span><strong>Dedução por consulta: Menor %</strong></span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Smartphone className="h-6 w-6 text-success flex-shrink-0" />
@@ -304,7 +310,7 @@ const Index = () => {
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Dedução por consulta</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">X%</td>
-                    <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-xs sm:text-sm md:text-base">27%</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-xs sm:text-sm md:text-base">Menor %</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Prontuário</td>
