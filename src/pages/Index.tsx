@@ -34,69 +34,69 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Cabeçalho Fixo */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="container mx-auto px-2 sm:px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
             <img 
               src="/lovable-uploads/91791353-fd2d-4472-9b14-67723fe916c4.png" 
               alt="Lasmar Telemed" 
-              className="h-12 w-auto"
+              className="h-8 sm:h-10 md:h-12 w-auto"
             />
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex gap-1 sm:gap-2 md:gap-3">
             <Button 
               onClick={() => handleRestrictedAccess('/auth', 'Área do Profissional')}
               variant="outline"
               size="sm"
-              className="border-primary text-primary hover:bg-primary hover:text-white"
+              className="border-primary text-primary hover:bg-primary hover:text-white text-xs sm:text-sm px-2 sm:px-3"
             >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Área do Profissional
+              <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Área do </span>Profissional
             </Button>
             <Button 
               onClick={() => handleRestrictedAccess('/admin/auth', 'Área Admin')}
               variant="outline"
               size="sm"
-              className="border-secondary text-secondary hover:bg-secondary hover:text-white"
+              className="border-secondary text-secondary hover:bg-secondary hover:text-white text-xs sm:text-sm px-2 sm:px-3"
             >
-              <Shield className="h-4 w-4 mr-2" />
-              Área Admin
+              <Shield className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Área </span>Admin
             </Button>
           </div>
         </div>
       </header>
 
       {/* Faixa 1 - Hero */}
-      <section className="pt-20 pb-16 bg-gradient-to-br from-primary/5 to-secondary/5 relative overflow-hidden">
+      <section className="pt-16 sm:pt-20 pb-12 sm:pb-16 bg-gradient-to-br from-primary/5 to-secondary/5 relative overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-5">
           <img src={doctorTeleconsult1} alt="" className="w-full h-full object-cover" />
         </div>
         
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <img 
                 src="/lovable-uploads/91791353-fd2d-4472-9b14-67723fe916c4.png" 
                 alt="Lasmar Telemed" 
-                className="h-24 sm:h-32 lg:h-40 w-auto mx-auto mb-8 hover-scale"
+                className="h-16 sm:h-24 md:h-32 lg:h-40 w-auto mx-auto mb-4 sm:mb-8 hover-scale"
               />
             </div>
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4">
               <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Lasmar Telemed
               </span>
             </h1>
             
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-primary mb-8">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-primary mb-6 sm:mb-8">
               Trabalhe Conosco
             </h2>
             
-            <div className="mt-12 rounded-2xl overflow-hidden shadow-2xl max-w-3xl mx-auto">
+            <div className="mt-8 sm:mt-12 rounded-2xl overflow-hidden shadow-2xl max-w-3xl mx-auto">
               <img 
                 src={medicalTeamTelemed} 
                 alt="Médicos em teleconsulta" 
-                className="w-full h-64 object-cover"
+                className="w-full h-48 sm:h-64 md:h-80 object-cover"
               />
             </div>
           </div>
@@ -104,17 +104,17 @@ const Index = () => {
       </section>
 
       {/* Faixa 2 - Chamada Principal */}
-      <section className="py-16 bg-white">
+      <section className="py-12 sm:py-16 bg-white">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
-            <p className="text-2xl sm:text-3xl text-foreground mb-8 font-medium leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-foreground mb-6 sm:mb-8 font-medium leading-relaxed px-2">
               Plataforma completa de trabalho em teleconsulta para profissionais da saúde.
             </p>
             
             <Button 
               onClick={() => handleNavigate('/auth')}
               size="lg"
-              className="bg-gradient-primary hover:scale-105 transition-all duration-300 px-12 py-6 text-xl font-semibold shadow-xl"
+              className="bg-gradient-primary hover:scale-105 transition-all duration-300 px-6 sm:px-8 md:px-12 py-4 sm:py-6 text-lg sm:text-xl font-semibold shadow-xl w-full sm:w-auto"
             >
               Cadastre-se agora
             </Button>
@@ -187,30 +187,30 @@ const Index = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8">
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-6 w-6 text-success flex-shrink-0" />
-                    <span>Secretário comunitário</span>
+                <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
+                    <span className="text-sm sm:text-base">Secretário comunitário</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <DollarSign className="h-6 w-6 text-success flex-shrink-0" />
-                    <span><strong>Dedução por consulta: 41%</strong></span>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
+                    <span className="text-sm sm:text-base"><strong>Dedução por consulta: 41%</strong></span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-6 w-6 text-success flex-shrink-0" />
-                    <span>Prontuário eletrônico (aberto, sem backup)</span>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
+                    <span className="text-sm sm:text-base">Prontuário eletrônico (aberto, sem backup)</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-6 w-6 text-success flex-shrink-0" />
-                    <span>Flexibilidade total e controle da agenda</span>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
+                    <span className="text-sm sm:text-base">Flexibilidade total e controle da agenda</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Smartphone className="h-6 w-6 text-success flex-shrink-0" />
-                    <span>Landing Page simples (padrão)</span>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Smartphone className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
+                    <span className="text-sm sm:text-base">Landing Page simples (padrão)</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-6 w-6 text-muted-foreground flex-shrink-0" />
-                    <span className="text-muted-foreground">Sem anúncios Google Ads direcionados</span>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground flex-shrink-0" />
+                    <span className="text-muted-foreground text-sm sm:text-base">Sem anúncios Google Ads direcionados</span>
                   </div>
                 </div>
               </CardContent>
@@ -335,39 +335,39 @@ const Index = () => {
             <h2 className="text-3xl sm:text-4xl font-bold text-center text-foreground mb-12">Tabela Comparativa Visual</h2>
             
             <div className="overflow-x-auto shadow-xl rounded-2xl">
-              <table className="w-full">
+              <table className="w-full min-w-[640px]">
                 <thead>
                   <tr className="bg-gradient-primary text-white">
-                    <th className="p-4 text-left font-bold">Categoria</th>
-                    <th className="p-4 text-center font-bold">Sem RQE</th>
-                    <th className="p-4 text-center font-bold">Com RQE</th>
-                    <th className="p-4 text-center font-bold">Cooperado Médico</th>
+                    <th className="p-2 sm:p-4 text-left font-bold text-sm sm:text-base">Categoria</th>
+                    <th className="p-2 sm:p-4 text-center font-bold text-sm sm:text-base">Sem RQE</th>
+                    <th className="p-2 sm:p-4 text-center font-bold text-sm sm:text-base">Com RQE</th>
+                    <th className="p-2 sm:p-4 text-center font-bold text-sm sm:text-base">Cooperado Médico</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b hover:bg-gray-50">
-                    <td className="p-4 font-semibold">Dedução por consulta</td>
-                    <td className="p-4 text-center">41%</td>
-                    <td className="p-4 text-center">36,8%</td>
-                    <td className="p-4 text-center font-bold text-success">27%</td>
+                    <td className="p-2 sm:p-4 font-semibold text-sm sm:text-base">Dedução por consulta</td>
+                    <td className="p-2 sm:p-4 text-center text-sm sm:text-base">41%</td>
+                    <td className="p-2 sm:p-4 text-center text-sm sm:text-base">36,8%</td>
+                    <td className="p-2 sm:p-4 text-center font-bold text-success text-sm sm:text-base">27%</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
-                    <td className="p-4 font-semibold">Prontuário</td>
-                    <td className="p-4 text-center">Aberto (sem backup)</td>
-                    <td className="p-4 text-center">Aberto (sem backup)</td>
-                    <td className="p-4 text-center font-bold text-success">Fechado (com backup)</td>
+                    <td className="p-2 sm:p-4 font-semibold text-sm sm:text-base">Prontuário</td>
+                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Aberto (sem backup)</td>
+                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Aberto (sem backup)</td>
+                    <td className="p-2 sm:p-4 text-center font-bold text-success text-xs sm:text-sm">Fechado (com backup)</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
-                    <td className="p-4 font-semibold">Secretaria</td>
-                    <td className="p-4 text-center">Comunitária</td>
-                    <td className="p-4 text-center">Comunitária</td>
-                    <td className="p-4 text-center font-bold text-success">Exclusiva + Vendedor até 22h</td>
+                    <td className="p-2 sm:p-4 font-semibold text-sm sm:text-base">Secretaria</td>
+                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Comunitária</td>
+                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Comunitária</td>
+                    <td className="p-2 sm:p-4 text-center font-bold text-success text-xs sm:text-sm">Exclusiva + Vendedor até 22h</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
-                    <td className="p-4 font-semibold">Landing Page</td>
-                    <td className="p-4 text-center">Simples (padrão)</td>
-                    <td className="p-4 text-center">Simples (padrão)</td>
-                    <td className="p-4 text-center font-bold text-success">Personalizada (Google Ads incluso)</td>
+                    <td className="p-2 sm:p-4 font-semibold text-sm sm:text-base">Landing Page</td>
+                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Simples (padrão)</td>
+                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Simples (padrão)</td>
+                    <td className="p-2 sm:p-4 text-center font-bold text-success text-xs sm:text-sm">Personalizada (Google Ads incluso)</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-4 font-semibold">Marketing/Anúncios</td>
@@ -400,19 +400,19 @@ const Index = () => {
               Seja parte da Lasmar Telemed e transforme sua carreira em teleconsulta.
             </h2>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
               <Button 
                 onClick={() => handleNavigate('/auth')}
                 size="lg"
                 variant="outline"
-                className="bg-white text-primary hover:bg-gray-100 border-white px-12 py-6 text-xl font-semibold shadow-xl hover:scale-105 transition-all duration-300"
+                className="bg-white text-primary hover:bg-gray-100 border-white px-6 sm:px-8 md:px-12 py-4 sm:py-6 text-lg sm:text-xl font-semibold shadow-xl hover:scale-105 transition-all duration-300 w-full sm:w-auto"
               >
                 Trabalhe Conosco
               </Button>
               <Button 
                 onClick={() => handleNavigate('/auth')}
                 size="lg"
-                className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border-white/30 px-12 py-6 text-xl font-semibold shadow-xl hover:scale-105 transition-all duration-300"
+                className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border-white/30 px-6 sm:px-8 md:px-12 py-4 sm:py-6 text-lg sm:text-xl font-semibold shadow-xl hover:scale-105 transition-all duration-300 w-full sm:w-auto"
               >
                 Cadastre-se Agora
               </Button>

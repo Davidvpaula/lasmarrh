@@ -78,8 +78,8 @@ const AdminAuth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-md mx-2">
         {/* Back Button */}
         <Button
           type="button"
@@ -89,27 +89,27 @@ const AdminAuth = () => {
             e.stopPropagation();
             navigate('/');
           }}
-          className="mb-6 p-2 hover:bg-muted/50 hover:text-primary transition-colors"
+          className="mb-4 sm:mb-6 p-2 hover:bg-muted/50 hover:text-primary transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
 
-        <Card className="border-2">
-          <CardHeader className="text-center pb-4">
+        <Card className="border-2 shadow-lg">
+          <CardHeader className="text-center pb-4 px-4 sm:px-6">
             <div className="mx-auto mb-4">
               <img 
                 src="/lovable-uploads/91791353-fd2d-4472-9b14-67723fe916c4.png" 
                 alt="Lasmar Telemed" 
-                className="h-16 w-auto mx-auto"
+                className="h-12 sm:h-16 w-auto mx-auto"
               />
             </div>
-            <CardTitle className="text-2xl">Login Administrativo</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl sm:text-2xl">Login Administrativo</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
               Acesso restrito para administradores da Lasmar Telemed
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
