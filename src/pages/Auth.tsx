@@ -46,12 +46,28 @@ const Auth = () => {
     }
 
     setLoginLoading(true);
-    const { error } = await signIn(loginData.email, loginData.password);
+    const { data, error } = await signIn(loginData.email, loginData.password);
     
-    if (!error) {
-      // Aguardar um pouco para o perfil ser carregado
-      setTimeout(() => {
-        navigate('/dashboard/professional');
+    if (!error && data?.user) {
+      // Aguardar um pouco para o perfil ser carregado e verificar role
+      setTimeout(async () => {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('user_id', data.user.id)
+            .single();
+          
+          if (profile?.role === 'admin') {
+            navigate('/dashboard/admin');
+          } else {
+            navigate('/dashboard/professional');
+          }
+        } catch (profileError) {
+          console.error('Erro ao verificar perfil:', profileError);
+          // Em caso de erro, redirecionar para dashboard profissional por padrão
+          navigate('/dashboard/professional');
+        }
       }, 1000);
     }
     setLoginLoading(false);

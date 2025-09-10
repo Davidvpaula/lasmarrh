@@ -3,6 +3,8 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
+import AdminAuth from './pages/AdminAuth';
+import ProfessionalAuth from './pages/ProfessionalAuth';
 import Dashboard from './pages/Dashboard';
 import DoctorDashboard from '@/components/DoctorDashboard';
 import AdminDashboard from '@/components/AdminDashboard';
@@ -26,7 +28,7 @@ import './App.css';
 function AppContent() {
   const { user, loading } = useAuth();
   const isAuthenticated = !!user;
-  const isAuthPage = window.location.pathname === '/auth' || window.location.pathname === '/';
+  const isAuthPage = window.location.pathname === '/auth' || window.location.pathname === '/admin/auth' || window.location.pathname === '/professional/auth' || window.location.pathname === '/';
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
@@ -39,6 +41,8 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/admin/auth" element={<AdminAuth />} />
+          <Route path="/professional/auth" element={<ProfessionalAuth />} />
           <Route path="*" element={<Auth />} />
         </Routes>
       </div>

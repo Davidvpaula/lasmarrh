@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,13 +30,43 @@ const AdminAuth = () => {
 
     setLoading(true);
     try {
-      const { error } = await signIn(email, password);
+      const { data, error } = await signIn(email, password);
       if (error) {
         toast({
           title: "Erro no login",
           description: error.message || "Credenciais inválidas. Verifique email e senha.",
           variant: "destructive",
         });
+      } else if (data?.user) {
+        // Aguardar um pouco para o perfil ser carregado e verificar se é admin
+        setTimeout(async () => {
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('user_id', data.user.id)
+              .single();
+            
+            if (profile?.role === 'admin') {
+              navigate('/dashboard/admin');
+            } else {
+              toast({
+                title: "Acesso negado",
+                description: "Você não tem permissão para acessar a área administrativa.",
+                variant: "destructive",
+              });
+              // Fazer logout se não for admin
+              await supabase.auth.signOut();
+            }
+          } catch (profileError) {
+            console.error('Erro ao verificar perfil:', profileError);
+            toast({
+              title: "Erro",
+              description: "Erro ao verificar permissões.",
+              variant: "destructive",
+            });
+          }
+        }, 1000);
       }
     } catch (error) {
       toast({

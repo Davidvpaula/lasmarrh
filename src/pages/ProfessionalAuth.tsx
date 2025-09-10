@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,13 +37,40 @@ const ProfessionalAuth = () => {
 
     setLoading(prev => ({ ...prev, login: true }));
     try {
-      const { error } = await signIn(loginData.email, loginData.password);
+      const { data, error } = await signIn(loginData.email, loginData.password);
       if (error) {
         toast({
           title: "Erro no login",
           description: error.message || "Credenciais inválidas. Verifique email e senha.",
           variant: "destructive",
         });
+      } else if (data?.user) {
+        // Verificar role e redirecionar adequadamente
+        setTimeout(async () => {
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role')
+              .eq('user_id', data.user.id)
+              .single();
+            
+            if (profile?.role === 'admin') {
+              toast({
+                title: "Acesso negado",
+                description: "Para acessar a área administrativa, use o login específico para administradores.",
+                variant: "destructive",
+              });
+              // Fazer logout
+              await supabase.auth.signOut();
+            } else {
+              navigate('/dashboard/professional');
+            }
+          } catch (profileError) {
+            console.error('Erro ao verificar perfil:', profileError);
+            // Em caso de erro, redirecionar para dashboard profissional por padrão
+            navigate('/dashboard/professional');
+          }
+        }, 1000);
       }
     } catch (error) {
       toast({
