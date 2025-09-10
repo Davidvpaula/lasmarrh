@@ -139,8 +139,7 @@ const Documents = () => {
     return fileName;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
 
     try {
@@ -180,7 +179,7 @@ const Documents = () => {
           description: "Seus dados e documentos foram enviados para análise.",
         });
 
-        navigate('/dashboard');
+        navigate('/training/professional');
       }
     } catch (error) {
       console.error('Error submitting documents:', error);
@@ -272,7 +271,7 @@ const Documents = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="full_name">Nome Completo</Label>
@@ -373,11 +372,7 @@ const Documents = () => {
                     />
                   </div>
                 </div>
-
-                <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? "Salvando..." : "Salvar Dados e Documentos"}
-                </Button>
-              </form>
+              </div>
             </CardContent>
           </Card>
 
@@ -425,6 +420,19 @@ const Documents = () => {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Submit Button at the end */}
+          <Card>
+            <CardContent className="pt-6">
+              <Button 
+                onClick={handleSubmit} 
+                disabled={loading} 
+                className="w-full bg-primary hover:bg-primary/90"
+              >
+                {loading ? "Enviando..." : "Enviar Documentos"}
+              </Button>
             </CardContent>
           </Card>
         </div>

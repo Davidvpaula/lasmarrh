@@ -69,7 +69,7 @@ export function AppSidebar() {
 
   const handleNavigation = async (e: React.MouseEvent, url: string, title: string) => {
     // Verificar acesso apenas para Documentos (stage 3) e Treinamento (stage 4)
-    if ((url === '/documents' || url === '/training') && !isAdminContext) {
+    if ((url === '/documents' || url === '/training/professional') && !isAdminContext) {
       e.preventDefault();
       
       const stageNumber = url === '/documents' ? 3 : 4;
@@ -83,6 +83,8 @@ export function AppSidebar() {
         });
         navigate('/interview');
         return;
+      } else {
+        navigate(url);
       }
     }
   };
@@ -91,7 +93,7 @@ export function AppSidebar() {
     { title: "Dashboard Profissional", url: "/dashboard/professional", icon: User },
     { title: "Entrevista", url: "/interview", icon: Calendar },
     { title: "Documentos", url: "/documents", icon: FileText },
-    { title: "Treinamento", url: "/training", icon: GraduationCap },
+    { title: "Treinamento", url: "/training/professional", icon: GraduationCap },
     { title: "Meu Perfil", url: "/profile", icon: User },
   ]
 
