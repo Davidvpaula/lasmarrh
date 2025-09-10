@@ -96,7 +96,7 @@ export function AppSidebar() {
   ]
 
   const adminItems = [
-    { title: "Início", url: "/", icon: Home },
+    { title: "Início", url: "/dashboard/admin", icon: Home },
     { title: "Candidatos", url: "/admin/applications", icon: Users },
     { title: "Entrevista", url: "/admin/interviews", icon: MessageSquare },
     { title: "Formulário", url: "/admin/forms", icon: FolderOpen },

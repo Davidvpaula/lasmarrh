@@ -168,9 +168,24 @@ export default function Interviews() {
                     {Object.entries(interview.responses).map(([question, answer]) => (
                       <div key={question} className="border-l-2 border-primary/20 pl-4">
                         <p className="font-medium text-sm text-muted-foreground mb-1">
-                          {question}
+                          {question === 'motivation' ? 'Motivação' : 
+                           question === 'experience' ? 'Experiência' : 
+                           question === 'expectations' ? 'Expectativas' : 
+                           question === 'whatsapp' ? 'WhatsApp' :
+                           question === 'availability' ? 'Disponibilidade' : question}
                         </p>
-                        <p className="text-sm">{String(answer)}</p>
+                        {question === 'availability' && typeof answer === 'object' ? (
+                          <div className="space-y-2">
+                            {Object.entries(answer as Record<string, string[]>).map(([day, slots]) => (
+                              <div key={day} className="text-sm">
+                                <span className="font-medium">{day}: </span>
+                                <span>{Array.isArray(slots) ? slots.join(', ') : 'Não disponível'}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm">{String(answer)}</p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -202,29 +217,172 @@ export default function Interviews() {
           )}
         </TabsContent>
 
-        <TabsContent value="pending">
-          {interviews.filter(i => i.status === 'pending').map((interview) => (
-            <Card key={interview.application_id} className="hover:shadow-md transition-shadow">
-              {/* Mesmo conteúdo do card acima */}
-            </Card>
-          ))}
-        </TabsContent>
+                        <TabsContent value="pending">
+                          {interviews.filter(i => i.status === 'pending').map((interview) => (
+                            <Card key={interview.application_id} className="hover:shadow-md transition-shadow">
+                              <CardHeader>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <User className="h-5 w-5 text-muted-foreground" />
+                                    <CardTitle className="text-lg">{interview.doctor_name}</CardTitle>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="secondary">Pendente</Badge>
+                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                      <Calendar className="h-4 w-4" />
+                                      {new Date(interview.submitted_at).toLocaleDateString('pt-BR')}
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-4">
+                                  {Object.entries(interview.responses).map(([question, answer]) => (
+                                    <div key={question} className="border-l-2 border-primary/20 pl-4">
+                                      <p className="font-medium text-sm text-muted-foreground mb-1">
+                                        {question === 'motivation' ? 'Motivação' : 
+                                         question === 'experience' ? 'Experiência' : 
+                                         question === 'expectations' ? 'Expectativas' : 
+                                         question === 'whatsapp' ? 'WhatsApp' :
+                                         question === 'availability' ? 'Disponibilidade' : question}
+                                      </p>
+                                      {question === 'availability' && typeof answer === 'object' ? (
+                                        <div className="space-y-2">
+                                          {Object.entries(answer as Record<string, string[]>).map(([day, slots]) => (
+                                            <div key={day} className="text-sm">
+                                              <span className="font-medium">{day}: </span>
+                                              <span>{Array.isArray(slots) ? slots.join(', ') : 'Não disponível'}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-sm">{String(answer)}</p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                                
+                                <div className="flex gap-2 mt-6 pt-4 border-t">
+                                  <Button
+                                    onClick={() => handleStatusUpdate(interview.application_id, 'approved')}
+                                    className="flex items-center gap-2"
+                                    size="sm"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                    Aprovar
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleStatusUpdate(interview.application_id, 'rejected')}
+                                    variant="destructive"
+                                    className="flex items-center gap-2"
+                                    size="sm"
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                    Rejeitar
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </TabsContent>
 
-        <TabsContent value="approved">
-          {interviews.filter(i => i.status === 'approved').map((interview) => (
-            <Card key={interview.application_id} className="hover:shadow-md transition-shadow">
-              {/* Mesmo conteúdo do card acima */}
-            </Card>
-          ))}
-        </TabsContent>
+                        <TabsContent value="approved">
+                          {interviews.filter(i => i.status === 'approved').map((interview) => (
+                            <Card key={interview.application_id} className="hover:shadow-md transition-shadow">
+                              <CardHeader>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <User className="h-5 w-5 text-muted-foreground" />
+                                    <CardTitle className="text-lg">{interview.doctor_name}</CardTitle>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="default">Aprovada</Badge>
+                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                      <Calendar className="h-4 w-4" />
+                                      {new Date(interview.submitted_at).toLocaleDateString('pt-BR')}
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-4">
+                                  {Object.entries(interview.responses).map(([question, answer]) => (
+                                    <div key={question} className="border-l-2 border-primary/20 pl-4">
+                                      <p className="font-medium text-sm text-muted-foreground mb-1">
+                                        {question === 'motivation' ? 'Motivação' : 
+                                         question === 'experience' ? 'Experiência' : 
+                                         question === 'expectations' ? 'Expectativas' : 
+                                         question === 'whatsapp' ? 'WhatsApp' :
+                                         question === 'availability' ? 'Disponibilidade' : question}
+                                      </p>
+                                      {question === 'availability' && typeof answer === 'object' ? (
+                                        <div className="space-y-2">
+                                          {Object.entries(answer as Record<string, string[]>).map(([day, slots]) => (
+                                            <div key={day} className="text-sm">
+                                              <span className="font-medium">{day}: </span>
+                                              <span>{Array.isArray(slots) ? slots.join(', ') : 'Não disponível'}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-sm">{String(answer)}</p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </TabsContent>
 
-        <TabsContent value="rejected">
-          {interviews.filter(i => i.status === 'rejected').map((interview) => (
-            <Card key={interview.application_id} className="hover:shadow-md transition-shadow">
-              {/* Mesmo conteúdo do card acima */}
-            </Card>
-          ))}
-        </TabsContent>
+                        <TabsContent value="rejected">
+                          {interviews.filter(i => i.status === 'rejected').map((interview) => (
+                            <Card key={interview.application_id} className="hover:shadow-md transition-shadow">
+                              <CardHeader>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <User className="h-5 w-5 text-muted-foreground" />
+                                    <CardTitle className="text-lg">{interview.doctor_name}</CardTitle>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="destructive">Rejeitada</Badge>
+                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                      <Calendar className="h-4 w-4" />
+                                      {new Date(interview.submitted_at).toLocaleDateString('pt-BR')}
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-4">
+                                  {Object.entries(interview.responses).map(([question, answer]) => (
+                                    <div key={question} className="border-l-2 border-primary/20 pl-4">
+                                      <p className="font-medium text-sm text-muted-foreground mb-1">
+                                        {question === 'motivation' ? 'Motivação' : 
+                                         question === 'experience' ? 'Experiência' : 
+                                         question === 'expectations' ? 'Expectativas' : 
+                                         question === 'whatsapp' ? 'WhatsApp' :
+                                         question === 'availability' ? 'Disponibilidade' : question}
+                                      </p>
+                                      {question === 'availability' && typeof answer === 'object' ? (
+                                        <div className="space-y-2">
+                                          {Object.entries(answer as Record<string, string[]>).map(([day, slots]) => (
+                                            <div key={day} className="text-sm">
+                                              <span className="font-medium">{day}: </span>
+                                              <span>{Array.isArray(slots) ? slots.join(', ') : 'Não disponível'}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-sm">{String(answer)}</p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </TabsContent>
       </Tabs>
     </div>
   );

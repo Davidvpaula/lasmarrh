@@ -6,10 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, UserPlus, Download, MessageSquare, Plus, Edit, Trash2, Upload, TrendingUp, Clock, AlertCircle } from 'lucide-react';
+import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, UserPlus, Upload, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import TrainingManagementTab from './TrainingManagementTab';
 import UploadsManagementTab from './UploadsManagementTab';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,6 +47,7 @@ const AdminDashboard = () => {
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<DoctorApplication | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [newAdminData, setNewAdminData] = useState({
     full_name: '',
     email: '',
@@ -238,7 +237,7 @@ const AdminDashboard = () => {
       const status = stage?.status || 'locked';
       
       if (status === 'completed' || status === 'approved') acc.completed++;
-      else if (status === 'available' || status === 'in_progress') acc.pending++;
+      else if (status === 'available' || status === 'in_progress' || status === 'pending') acc.pending++;
       else acc.blocked++;
       
       return acc;
@@ -257,12 +256,18 @@ const AdminDashboard = () => {
         return <Badge variant="secondary" className="bg-success text-success-foreground">Concluída</Badge>;
       case 'available':
       case 'in_progress':
+      case 'pending':
         return <Badge variant="secondary" className="bg-warning text-warning-foreground">Pendente</Badge>;
       case 'rejected':
         return <Badge variant="destructive">Rejeitada</Badge>;
       default:
         return <Badge variant="outline">Bloqueada</Badge>;
     }
+  };
+
+  const handleViewDetails = (app: DoctorApplication) => {
+    setSelectedApplication(app);
+    setDialogOpen(true);
   };
 
   if (loading) {
@@ -388,7 +393,7 @@ const AdminDashboard = () => {
               <span className="hidden sm:inline">Admins</span>
             </TabsTrigger>
             <TabsTrigger value="management" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <MessageSquare className="h-4 w-4" />
+              <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Gestão</span>
             </TabsTrigger>
           </TabsList>
@@ -426,174 +431,28 @@ const AdminDashboard = () => {
                               <div>
                                 <h3 className="font-semibold text-lg">{app.profiles.full_name}</h3>
                                 <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                  <MessageSquare className="h-3 w-3" />
                                   {app.profiles.email}
                                 </p>
                               </div>
                             </div>
-                            {app.profiles.crm && (
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                                <FileText className="h-3 w-3" />
-                                CRM: {app.profiles.crm}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <div className="flex items-center gap-2 mb-1">
-                                <Badge variant={app.current_stage >= 3 ? "secondary" : "outline"} className="bg-accent/10 text-accent">
-                                  Etapa {app.current_stage}
-                                </Badge>
-                                <span className="text-sm font-medium">{getStageName(app.current_stage)}</span>
-                              </div>
-                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span>Etapa atual: {app.current_stage}</span>
+                              <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 {new Date(app.created_at).toLocaleDateString('pt-BR')}
-                              </p>
+                              </span>
                             </div>
-                            <div className="flex gap-2">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button variant="outline" size="sm" onClick={() => setSelectedApplication(app)} className="hover-scale">
-                                    <Eye className="h-4 w-4 mr-1" />
-                                    Ver Detalhes
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                                  <DialogHeader>
-                                    <DialogTitle>Detalhes da Candidatura</DialogTitle>
-                                    <DialogDescription>
-                                      Informações completas para {selectedApplication?.profiles.full_name}
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  {selectedApplication && (
-                                    <div className="space-y-6">
-                                      {/* Informações Pessoais */}
-                                      <Card>
-                                        <CardHeader>
-                                          <CardTitle className="flex items-center gap-2">
-                                            <Users className="h-5 w-5 text-primary" />
-                                            Informações Pessoais
-                                          </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="space-y-4">
-                                          <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                              <Label className="text-sm font-medium">Nome Completo</Label>
-                                              <p className="text-sm text-muted-foreground">{selectedApplication.profiles.full_name}</p>
-                                            </div>
-                                            <div>
-                                              <Label className="text-sm font-medium">Email</Label>
-                                              <p className="text-sm text-muted-foreground">{selectedApplication.profiles.email}</p>
-                                            </div>
-                                            <div>
-                                              <Label className="text-sm font-medium">CRM</Label>
-                                              <p className="text-sm text-muted-foreground">{selectedApplication.profiles.crm}</p>
-                                            </div>
-                                            <div>
-                                              <Label className="text-sm font-medium">Telefone</Label>
-                                              <p className="text-sm text-muted-foreground">{selectedApplication.profiles.phone}</p>
-                                            </div>
-                                          </div>
-                                        </CardContent>
-                                      </Card>
-
-                                      {/* Progresso das Etapas */}
-                                      <Card>
-                                        <CardHeader>
-                                          <CardTitle className="flex items-center gap-2">
-                                            <CheckCircle className="h-5 w-5 text-primary" />
-                                            Progresso das Etapas
-                                          </CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                          <div className="space-y-4">
-                                            {selectedApplication.stage_progress.map((stage) => {
-                                              let interviewData = null;
-                                              if (stage.stage_number === 2 && stage.notes) {
-                                                try {
-                                                  interviewData = JSON.parse(stage.notes);
-                                                } catch (e) {
-                                                  // Ignore parsing errors
-                                                }
-                                              }
-
-                                              return (
-                                                <div key={stage.stage_number} className="border rounded-lg p-4">
-                                                  <div className="flex items-center justify-between mb-2">
-                                                    <h4 className="font-semibold">Etapa {stage.stage_number}: {getStageName(stage.stage_number)}</h4>
-                                                    {getStatusBadge(stage.status)}
-                                                  </div>
-                                                  
-                                                  {/* Interview Form Data */}
-                                                  {stage.stage_number === 2 && interviewData && (
-                                                    <div className="mt-4 space-y-3 bg-muted/30 p-4 rounded-lg">
-                                                      <h5 className="font-medium text-sm text-primary">Respostas da Entrevista:</h5>
-                                                      <div className="space-y-3">
-                                                        <div>
-                                                          <Label className="text-xs font-medium">Motivação:</Label>
-                                                          <p className="text-sm text-muted-foreground mt-1">{interviewData.motivation}</p>
-                                                        </div>
-                                                        <div>
-                                                          <Label className="text-xs font-medium">Experiência:</Label>
-                                                          <p className="text-sm text-muted-foreground mt-1">{interviewData.experience}</p>
-                                                        </div>
-                                                        <div>
-                                                          <Label className="text-xs font-medium">Disponibilidade:</Label>
-                                                          <p className="text-sm text-muted-foreground mt-1">{interviewData.availability}</p>
-                                                        </div>
-                                                        <div>
-                                                          <Label className="text-xs font-medium">Expectativas:</Label>
-                                                          <p className="text-sm text-muted-foreground mt-1">{interviewData.expectations}</p>
-                                                        </div>
-                                                      </div>
-                                                      
-                                                      {/* Admin Actions for Interview */}
-                                                      {stage.status === 'in_progress' && (
-                                                        <div className="flex gap-2 mt-4">
-                                                          <Button 
-                                                            size="sm" 
-                                                            onClick={() => updateStageStatus(selectedApplication.id, 2, 'approved', 'Entrevista aprovada pelo administrador')}
-                                                            className="bg-success hover:bg-success/80"
-                                                          >
-                                                            <CheckCircle className="h-4 w-4 mr-1" />
-                                                            Aprovar Entrevista
-                                                          </Button>
-                                                          <Button 
-                                                            size="sm" 
-                                                            variant="destructive"
-                                                            onClick={() => updateStageStatus(selectedApplication.id, 2, 'rejected', 'Entrevista rejeitada pelo administrador')}
-                                                          >
-                                                            <XCircle className="h-4 w-4 mr-1" />
-                                                            Rejeitar
-                                                          </Button>
-                                                        </div>
-                                                      )}
-                                                    </div>
-                                                  )}
-                                                  
-                                                  {stage.completed_at && (
-                                                    <p className="text-xs text-muted-foreground mt-2">
-                                                      Concluída em: {new Date(stage.completed_at).toLocaleDateString('pt-BR')}
-                                                    </p>
-                                                  )}
-                                                  
-                                                  {stage.notes && stage.stage_number !== 2 && (
-                                                    <p className="text-sm text-muted-foreground mt-2">
-                                                      <strong>Notas:</strong> {stage.notes}
-                                                    </p>
-                                                  )}
-                                                </div>
-                                              );
-                                            })}
-                                          </div>
-                                        </CardContent>
-                                      </Card>
-                                    </div>
-                                  )}
-                                </DialogContent>
-                              </Dialog>
-                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleViewDetails(app)}
+                              className="hover-scale"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              Ver Detalhes
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -683,20 +542,17 @@ const AdminDashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   {admins.map((admin) => (
-                    <div key={admin.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h3 className="font-semibold">{admin.full_name}</h3>
-                        <p className="text-sm text-muted-foreground">{admin.email}</p>
-                        <Badge variant="outline" className="mt-1">
-                          {admin.role}
-                        </Badge>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground">
-                          Criado em {new Date(admin.created_at).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                    </div>
+                    <Card key={admin.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold">{admin.full_name}</h3>
+                            <p className="text-sm text-muted-foreground">{admin.email}</p>
+                          </div>
+                          <Badge variant="outline">Administrador</Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               </CardContent>
@@ -719,9 +575,137 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
         </Tabs>
       </div>
+
+      {/* Dialog para ver detalhes */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Candidatura</DialogTitle>
+            <DialogDescription>
+              Informações completas para {selectedApplication?.profiles.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedApplication && (
+            <div className="space-y-6">
+              {/* Informações Pessoais */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Informações Pessoais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium">Nome Completo</Label>
+                      <p className="text-sm text-muted-foreground">{selectedApplication.profiles.full_name}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Email</Label>
+                      <p className="text-sm text-muted-foreground">{selectedApplication.profiles.email}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">CRM</Label>
+                      <p className="text-sm text-muted-foreground">{selectedApplication.profiles.crm || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Telefone</Label>
+                      <p className="text-sm text-muted-foreground">{selectedApplication.profiles.phone || 'Não informado'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Progresso das Etapas */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-primary" />
+                    Progresso das Etapas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {selectedApplication.stage_progress.map((stage) => {
+                      let interviewData = null;
+                      if (stage.stage_number === 2 && stage.notes) {
+                        try {
+                          interviewData = JSON.parse(stage.notes);
+                        } catch (e) {
+                          // Ignore parsing errors
+                        }
+                      }
+
+                      return (
+                        <div key={stage.stage_number} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <div className="text-sm font-medium">
+                                Etapa {stage.stage_number}: {getStageName(stage.stage_number)}
+                              </div>
+                              {getStatusBadge(stage.status)}
+                            </div>
+                            {stage.completed_at && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Concluída em: {new Date(stage.completed_at).toLocaleDateString('pt-BR')}
+                              </p>
+                            )}
+                            {interviewData && (
+                              <div className="mt-2 p-2 bg-muted/30 rounded">
+                                <p className="text-xs font-medium mb-1">Dados da Entrevista:</p>
+                                <div className="text-xs space-y-1">
+                                  {interviewData.motivation && <p><strong>Motivação:</strong> {interviewData.motivation}</p>}
+                                  {interviewData.experience && <p><strong>Experiência:</strong> {interviewData.experience}</p>}
+                                  {interviewData.expectations && <p><strong>Expectativas:</strong> {interviewData.expectations}</p>}
+                                  {interviewData.whatsapp && <p><strong>WhatsApp:</strong> {interviewData.whatsapp}</p>}
+                                  {interviewData.availability && (
+                                    <div>
+                                      <p><strong>Disponibilidade:</strong></p>
+                                      {Object.entries(interviewData.availability).map(([day, slots]: [string, any]) => (
+                                        <p key={day} className="ml-2">
+                                          {day}: {Array.isArray(slots) ? slots.join(', ') : 'Não disponível'}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {(stage.status === 'pending' || stage.status === 'available') && (
+                            <div className="flex gap-2 ml-4">
+                              <Button
+                                size="sm"
+                                onClick={() => updateStageStatus(selectedApplication.id, stage.stage_number, 'approved')}
+                                className="bg-success hover:bg-success/90"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Aprovar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => updateStageStatus(selectedApplication.id, stage.stage_number, 'rejected')}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Rejeitar
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
