@@ -116,7 +116,7 @@ const Index = () => {
               size="lg"
               className="bg-gradient-primary hover:scale-105 transition-all duration-300 px-12 py-6 text-xl font-semibold shadow-xl"
             >
-              👉 Cadastre-se agora
+              Cadastre-se agora
             </Button>
           </div>
         </div>
@@ -407,14 +407,14 @@ const Index = () => {
                 variant="outline"
                 className="bg-white text-primary hover:bg-gray-100 border-white px-12 py-6 text-xl font-semibold shadow-xl hover:scale-105 transition-all duration-300"
               >
-                👉 Trabalhe Conosco
+                Trabalhe Conosco
               </Button>
               <Button 
                 onClick={() => handleNavigate('/auth')}
                 size="lg"
                 className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border-white/30 px-12 py-6 text-xl font-semibold shadow-xl hover:scale-105 transition-all duration-300"
               >
-                👉 Cadastre-se Agora
+                Cadastre-se Agora
               </Button>
             </div>
             
