@@ -136,7 +136,7 @@ const Index = () => {
                 Hoje, contamos com um grupo seleto de 15 profissionais, todos focados em criar vínculos reais com seus pacientes, trabalhando 100% em teleconsulta.
               </p>
               <p className="font-semibold text-primary">
-                Nosso propósito é oferecer atendimento humano, de qualidade e que gera fidelização, fortalecendo tanto o paciente quanto o profissional.
+                Nosso propósito é oferecer um atendimento humano, de qualidade e que gera fidelização, valorizando a experiência do paciente e do profissional.
               </p>
             </div>
           </div>
