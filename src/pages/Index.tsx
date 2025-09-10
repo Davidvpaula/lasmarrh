@@ -230,7 +230,7 @@ const Index = () => {
                 <CardTitle className="text-2xl sm:text-3xl font-bold">
                   Cooperado Médico (Patrocinado)
                 </CardTitle>
-                <CardDescription className="text-white/80 text-sm font-medium mt-1">
+                <CardDescription className="text-white/80 text-lg font-medium mt-1">
                   (Opcional)
                 </CardDescription>
               </CardHeader>
