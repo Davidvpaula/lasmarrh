@@ -251,7 +251,7 @@ const Index = () => {
                     </div>
                     <div className="flex items-start gap-3">
                       <ArrowRight className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span>Para trabalhar conosco não há mensalidade nem custo de adesão. Você só paga uma taxa sobre cada consulta realizada, e todos os outros serviços são opcionais.</span>
+                      <span>Sem mensalidade ou adesão: você só paga a taxa por consulta, com serviços extras opcionais.</span>
                     </div>
                     <div className="flex items-start gap-3">
                       <ArrowRight className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
