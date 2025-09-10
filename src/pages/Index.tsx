@@ -269,7 +269,7 @@ const Index = () => {
             <Card className="shadow-xl border-2 border-warning/30 hover:shadow-2xl transition-all duration-300">
               <CardHeader className="text-center bg-gradient-to-r from-warning to-orange-500 text-white">
                 <CardTitle className="text-2xl sm:text-3xl font-bold">
-                  Cooperado Médico (Plano Premium)
+                  Cooperado Médico (Patrocinado)
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8">
