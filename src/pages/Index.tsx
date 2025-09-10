@@ -335,7 +335,7 @@ const Index = () => {
                   <tr className="hover:bg-gray-50">
                     <td className="p-3 font-semibold text-sm">Suporte TI</td>
                     <td className="p-3 text-center text-sm">Básico</td>
-                    <td className="p-3 text-center font-bold text-success text-sm">Gestor de Tráfego<br/>(R$ 300,00)</td>
+                    <td className="p-3 text-center font-bold text-success text-sm">Gestor de Tráfego</td>
                   </tr>
                 </tbody>
               </table>
