@@ -95,6 +95,13 @@ export default function Forms() {
 
       // Atualizar status da aplicação se aprovado
       if (newStatus === 'approved') {
+        // Desbloquear próxima etapa (Treinamento - stage 4)
+        await supabase
+          .from('stage_progress')
+          .update({ status: 'available' })
+          .eq('application_id', applicationId)
+          .eq('stage_number', 4);
+          
         await supabase
           .from('applications')
           .update({ current_stage: 4 })
@@ -103,7 +110,7 @@ export default function Forms() {
 
       toast({
         title: "Sucesso",
-        description: `Formulário ${newStatus === 'approved' ? 'aprovado' : 'rejeitado'} com sucesso`,
+        description: `Formulário ${newStatus === 'approved' ? 'aprovado' : 'rejeitado'} com sucesso!`,
       });
 
       fetchForms();
@@ -111,7 +118,7 @@ export default function Forms() {
       console.error('Erro ao atualizar status:', error);
       toast({
         title: "Erro",
-        description: "Falha ao atualizar status",
+        description: "Falha ao atualizar status do formulário",
         variant: "destructive",
       });
     }
@@ -260,15 +267,15 @@ export default function Forms() {
                     )}
                   </div>
                   
-                  {form.status === 'pending' && (
+                  {(form.status === 'pending' || form.status === 'in_progress') && (
                     <div className="flex gap-2 mt-6 pt-4 border-t">
                       <Button
                         onClick={() => handleStatusUpdate(form.application_id, 'approved')}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 bg-success hover:bg-success/90"
                         size="sm"
                       >
                         <CheckCircle className="h-4 w-4" />
-                        Aprovar
+                        Aprovar Formulário
                       </Button>
                       <Button
                         onClick={() => handleStatusUpdate(form.application_id, 'rejected')}
@@ -277,7 +284,7 @@ export default function Forms() {
                         size="sm"
                       >
                         <XCircle className="h-4 w-4" />
-                        Rejeitar
+                        Rejeitar Formulário
                       </Button>
                     </div>
                   )}
