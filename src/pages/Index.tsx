@@ -309,7 +309,7 @@ const Index = () => {
                 <tbody>
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-3 font-semibold text-sm">Dedução por consulta</td>
-                    <td className="p-3 text-center text-sm">X%</td>
+                    <td className="p-3 text-center text-sm">XX%</td>
                     <td className="p-3 text-center font-bold text-success text-sm">Menor %</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
