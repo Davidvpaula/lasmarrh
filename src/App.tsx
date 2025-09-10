@@ -2,7 +2,6 @@ import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import Index from './pages/Index';
-import Auth from './pages/Auth';
 import AdminAuth from './pages/AdminAuth';
 import ProfessionalAuth from './pages/ProfessionalAuth';
 import Dashboard from './pages/Dashboard';
@@ -40,10 +39,10 @@ function AppContent() {
       <div className="min-h-screen">
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
+          <Route path="/auth" element={<ProfessionalAuth />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/professional/auth" element={<ProfessionalAuth />} />
-          <Route path="*" element={<Auth />} />
+          <Route path="*" element={<ProfessionalAuth />} />
         </Routes>
       </div>
     );

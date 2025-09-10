@@ -16,7 +16,7 @@ const Index = () => {
       if (path.includes('/admin')) {
         handleNavigate('/admin/auth');
       } else {
-        handleNavigate('/professional/auth');
+        handleNavigate('/auth');
       }
       return;
     }
@@ -44,14 +44,14 @@ const Index = () => {
           {/* Authentication Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
-              onClick={() => handleNavigate('/professional/auth')}
+              onClick={() => handleNavigate('/auth')}
               size="lg"
               className="bg-gradient-primary hover:bg-primary-hover"
             >
               Entrar na Plataforma
             </Button>
             <Button 
-              onClick={() => handleNavigate('/professional/auth')}
+              onClick={() => handleNavigate('/auth')}
               variant="outline"
               size="lg"
             >
