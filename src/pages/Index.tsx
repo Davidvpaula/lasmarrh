@@ -153,7 +153,7 @@ const Index = () => {
               <div className="space-y-6">
                 <div className="text-lg leading-relaxed text-muted-foreground space-y-4">
                   <p>
-                    Na Lasmar Telemed, você realiza consultas particulares e tem apoio para atrair e gerenciar seus pacientes.
+                    Na Lasmar Telemed, você realiza consultas particulares com todo o apoio necessário para conquistar e gerenciar seus pacientes.
                   </p>
                   <p>
                     Nossa equipe de gestão, vendas, secretariado e marketing trabalha para impulsionar seu perfil, trazendo pacientes diretamente para você.
