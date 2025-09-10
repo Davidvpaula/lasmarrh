@@ -36,61 +36,8 @@ interface DocumentTemplate {
   created_at: string;
 }
 
-// Mock data para desenvolvimento
-const mockCandidates: Candidate[] = [
-  {
-    id: 'candidate-001',
-    name: 'Dr. Maria Santos',
-    email: 'maria.santos@email.com',
-    crm: 'CRM/SP 123456',
-    phone: '(11) 99999-9999',
-    current_stage: 3,
-    documents: [
-      {
-        id: 'doc-001',
-        document_type: 'rg',
-        file_name: 'rg_maria_santos.pdf',
-        file_path: '/uploads/rg_maria_santos.pdf',
-        uploaded_at: '2024-01-15T10:00:00Z',
-        status: 'approved'
-      },
-      {
-        id: 'doc-002',
-        document_type: 'crm',
-        file_name: 'crm_maria_santos.pdf',
-        file_path: '/uploads/crm_maria_santos.pdf',
-        uploaded_at: '2024-01-15T10:30:00Z',
-        status: 'pending'
-      }
-    ]
-  },
-  {
-    id: 'candidate-002',
-    name: 'Dr. Carlos Oliveira',
-    email: 'carlos.oliveira@email.com',
-    crm: 'CRM/RJ 654321',
-    phone: '(21) 88888-8888',
-    current_stage: 3,
-    documents: [
-      {
-        id: 'doc-003',
-        document_type: 'rg',
-        file_name: 'rg_carlos_oliveira.pdf',
-        file_path: '/uploads/rg_carlos_oliveira.pdf',
-        uploaded_at: '2024-01-10T09:00:00Z',
-        status: 'approved'
-      },
-      {
-        id: 'doc-004',
-        document_type: 'diploma',
-        file_name: 'diploma_carlos_oliveira.pdf',
-        file_path: '/uploads/diploma_carlos_oliveira.pdf',
-        uploaded_at: '2024-01-10T09:30:00Z',
-        status: 'rejected'
-      }
-    ]
-  }
-];
+// Mock data para desenvolvimento - removido conforme solicitado
+const mockCandidates: Candidate[] = [];
 
 const mockDocumentTemplates: DocumentTemplate[] = [
   {
