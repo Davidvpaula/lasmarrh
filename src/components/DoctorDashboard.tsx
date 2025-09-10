@@ -38,10 +38,10 @@ const DoctorDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user && profile) {
+    if (user) {
       fetchApplicationData();
     }
-  }, [user, profile]);
+  }, [user]);
 
   const fetchApplicationData = async () => {
     if (!user) return;

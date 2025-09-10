@@ -22,14 +22,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
 
-  const fetchProfile = async () => {
-    if (!session?.user) return;
+  const fetchProfile = async (currentSession?: Session) => {
+    const sessionToUse = currentSession || session;
+    if (!sessionToUse?.user) return;
     
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', session.user.id)
+        .eq('user_id', sessionToUse.user.id)
         .single();
       
       if (error) throw error;
@@ -50,7 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Fetch profile after auth state changes
         if (session?.user) {
           setTimeout(() => {
-            fetchProfile();
+            fetchProfile(session);
           }, 0);
         } else {
           setProfile(null);
@@ -63,6 +64,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Fetch profile for initial session
+      if (session?.user) {
+        setTimeout(() => {
+          fetchProfile(session);
+        }, 0);
+      }
     });
 
     return () => subscription.unsubscribe();
