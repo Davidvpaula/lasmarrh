@@ -17,6 +17,7 @@ interface InterviewForm {
   motivation: string;
   experience: string;
   expectations: string;
+  whatsapp: string;
   availability: {
     [day: string]: string[]; // Each day maps to an array of selected time slots
   };
@@ -30,6 +31,7 @@ const Interview = () => {
     motivation: '',
     experience: '',
     expectations: '',
+    whatsapp: '',
     availability: {}
   });
   const [loading, setLoading] = useState(false);
@@ -276,15 +278,29 @@ const Interview = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="expectations">
-                  Quais são suas expectativas para esta oportunidade?
+                  Você já teve alguma experiência com teleconsulta? Compartilha com a gente.
                 </Label>
                 <Textarea
                   id="expectations"
                   value={form.expectations}
                   onChange={(e) => setForm({ ...form, expectations: e.target.value })}
-                  placeholder="Descreva suas expectativas..."
+                  placeholder="Descreva sua experiência com teleconsulta..."
                   required
                   className="min-h-[100px]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp">
+                  Adicione também seu número de WhatsApp para que a gente possa entrar em contato com você.
+                </Label>
+                <Input
+                  id="whatsapp"
+                  type="tel"
+                  value={form.whatsapp}
+                  onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                  placeholder="Ex: (11) 99999-9999"
+                  required
                 />
               </div>
 
