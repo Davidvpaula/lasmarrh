@@ -251,7 +251,7 @@ const Index = () => {
                     </div>
                     <div className="flex items-start gap-3">
                       <ArrowRight className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span><strong className="text-primary">Trabalhar conosco é gratuito:</strong> não cobramos mensalidades, apenas uma taxa sobre cada consulta realizada.</span>
+                      <span><strong className="text-primary">Para trabalhar conosco não há mensalidade nem custo de adesão. Você só paga uma taxa sobre cada consulta realizada, e todos os outros serviços são opcionais.</strong></span>
                     </div>
                     <div className="flex items-start gap-3">
                       <ArrowRight className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
