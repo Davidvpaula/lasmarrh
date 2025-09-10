@@ -238,7 +238,7 @@ const Index = () => {
               <div className="space-y-6">
                 <div className="text-lg leading-relaxed text-muted-foreground space-y-4">
                   <p>
-                    Na Lasmar Telemed, entendemos os desafios de entrar no mercado digital e sabemos que muitos profissionais precisam de apoio para se posicionar. Pensando nisso, criamos um espaço funcional, acessível e de baixo custo, que oferece todas as ferramentas para quem deseja crescer no universo da teleconsulta.
+                    Na Lasmar Telemed, entendemos os desafios de entrar no mercado digital e sabemos que muitos profissionais precisam de apoio para se posicionar. Pensando nisso, <strong className="text-primary">criamos um espaço funcional, acessível e de baixo custo,</strong> que oferece todas as ferramentas para quem deseja crescer no universo da teleconsulta.
                   </p>
                   <p>
                     Nosso modelo é baseado em <strong className="text-primary">empreendedorismo médico</strong>: trabalhamos com grupos reduzidos de profissionais e especialidades específicas, garantindo foco no que realmente importa.
