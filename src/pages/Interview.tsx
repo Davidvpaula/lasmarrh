@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ interface InterviewForm {
 const Interview = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const isMountedRef = useRef(true);
   const [form, setForm] = useState<InterviewForm>({
     motivation: '',
     experience: '',
@@ -33,6 +34,7 @@ const Interview = () => {
   });
   const [loading, setLoading] = useState(false);
   const [stageStatus, setStageStatus] = useState('');
+  const [openPopovers, setOpenPopovers] = useState<Set<string>>(new Set());
 
   const DAYS_OF_WEEK = [
     { value: 'segunda', label: 'Segunda-feira' },
@@ -51,7 +53,12 @@ const Interview = () => {
   ];
 
   useEffect(() => {
+    isMountedRef.current = true;
     checkStageStatus();
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const checkStageStatus = async () => {
@@ -95,7 +102,9 @@ const Interview = () => {
     }
   };
 
-  const handleTimeSlotChange = (day: string, timeSlot: string, checked: boolean) => {
+  const handleTimeSlotChange = useCallback((day: string, timeSlot: string, checked: boolean) => {
+    if (!isMountedRef.current) return;
+    
     setForm(prev => ({
       ...prev,
       availability: {
@@ -105,9 +114,11 @@ const Interview = () => {
           : (prev.availability[day] || []).filter(slot => slot !== timeSlot)
       }
     }));
-  };
+  }, []);
 
-  const removeTimeSlot = (day: string, timeSlot: string) => {
+  const removeTimeSlot = useCallback((day: string, timeSlot: string) => {
+    if (!isMountedRef.current) return;
+    
     setForm(prev => ({
       ...prev,
       availability: {
@@ -115,7 +126,21 @@ const Interview = () => {
         [day]: (prev.availability[day] || []).filter(slot => slot !== timeSlot)
       }
     }));
-  };
+  }, []);
+
+  const togglePopover = useCallback((dayValue: string, isOpen: boolean) => {
+    if (!isMountedRef.current) return;
+    
+    setOpenPopovers(prev => {
+      const newSet = new Set(prev);
+      if (isOpen) {
+        newSet.add(dayValue);
+      } else {
+        newSet.delete(dayValue);
+      }
+      return newSet;
+    });
+  }, []);
 
   const hasAnyAvailability = () => {
     return Object.values(form.availability).some(slots => slots && slots.length > 0);
@@ -279,68 +304,86 @@ const Interview = () => {
                   <div className="space-y-4">
                     <Label className="text-sm font-medium">Selecione os dias e horários disponíveis</Label>
                     <div className="space-y-3">
-                      {DAYS_OF_WEEK.map((day) => (
-                        <div key={day.value} className="border rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <Label className="text-sm font-medium">{day.label}</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 px-3"
-                                >
-                                  Selecionar Horários
-                                  <ChevronDown className="ml-2 h-3 w-3" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-80 bg-background border shadow-lg z-50">
-                                <div className="space-y-3">
-                                  <Label className="text-sm font-medium">
-                                    Horários disponíveis - {day.label}
-                                  </Label>
-                                  <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
-                                    {TIME_SLOTS.map((timeSlot) => (
-                                      <div key={timeSlot} className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={`${day.value}-${timeSlot}`}
-                                          checked={form.availability[day.value]?.includes(timeSlot) || false}
-                                          onCheckedChange={(checked) =>
-                                            handleTimeSlotChange(day.value, timeSlot, checked as boolean)
-                                          }
-                                        />
-                                        <Label
-                                          htmlFor={`${day.value}-${timeSlot}`}
-                                          className="text-xs cursor-pointer"
-                                        >
-                                          {timeSlot}
-                                        </Label>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          </div>
+                       {DAYS_OF_WEEK.map((day) => (
+                         <div key={`day-${day.value}`} className="border rounded-lg p-4">
+                           <div className="flex items-center justify-between mb-3">
+                             <Label className="text-sm font-medium">{day.label}</Label>
+                             <Popover 
+                               open={openPopovers.has(day.value)}
+                               onOpenChange={(open) => togglePopover(day.value, open)}
+                             >
+                               <PopoverTrigger asChild>
+                                 <Button
+                                   variant="outline"
+                                   size="sm"
+                                   className="h-8 px-3"
+                                   type="button"
+                                 >
+                                   Selecionar Horários
+                                   <ChevronDown className="ml-2 h-3 w-3" />
+                                 </Button>
+                               </PopoverTrigger>
+                               <PopoverContent 
+                                 className="w-80 bg-background border shadow-lg z-50"
+                                 side="bottom"
+                                 align="end"
+                                 sideOffset={5}
+                               >
+                                 <div className="space-y-3">
+                                   <Label className="text-sm font-medium">
+                                     Horários disponíveis - {day.label}
+                                   </Label>
+                                   <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto">
+                                     {TIME_SLOTS.map((timeSlot) => (
+                                       <div key={`${day.value}-${timeSlot}`} className="flex items-center space-x-2">
+                                         <Checkbox
+                                           id={`checkbox-${day.value}-${timeSlot}`}
+                                           checked={form.availability[day.value]?.includes(timeSlot) || false}
+                                           onCheckedChange={(checked) =>
+                                             handleTimeSlotChange(day.value, timeSlot, checked as boolean)
+                                           }
+                                         />
+                                         <Label
+                                           htmlFor={`checkbox-${day.value}-${timeSlot}`}
+                                           className="text-xs cursor-pointer"
+                                         >
+                                           {timeSlot}
+                                         </Label>
+                                       </div>
+                                     ))}
+                                   </div>
+                                 </div>
+                               </PopoverContent>
+                             </Popover>
+                           </div>
                           
-                          {/* Display selected times for this day */}
-                          {form.availability[day.value] && form.availability[day.value].length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {form.availability[day.value].map((timeSlot) => (
-                                <Badge
-                                  key={timeSlot}
-                                  variant="secondary"
-                                  className="text-xs px-2 py-1 bg-primary/10 text-primary"
-                                >
-                                  {timeSlot}
-                                  <X
-                                    className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
-                                    onClick={() => removeTimeSlot(day.value, timeSlot)}
-                                  />
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
+                           {/* Display selected times for this day */}
+                           {form.availability[day.value] && form.availability[day.value].length > 0 && (
+                             <div className="flex flex-wrap gap-1 mt-2">
+                               {form.availability[day.value].map((timeSlot, index) => (
+                                 <Badge
+                                   key={`badge-${day.value}-${timeSlot}-${index}`}
+                                   variant="secondary"
+                                   className="text-xs px-2 py-1 bg-primary/10 text-primary"
+                                 >
+                                   {timeSlot}
+                                   <Button
+                                     type="button"
+                                     variant="ghost"
+                                     size="sm"
+                                     className="ml-1 h-3 w-3 p-0 hover:bg-transparent"
+                                     onClick={(e) => {
+                                       e.preventDefault();
+                                       e.stopPropagation();
+                                       removeTimeSlot(day.value, timeSlot);
+                                     }}
+                                   >
+                                     <X className="h-3 w-3 hover:text-destructive" />
+                                   </Button>
+                                 </Badge>
+                               ))}
+                             </div>
+                           )}
                         </div>
                       ))}
                     </div>
