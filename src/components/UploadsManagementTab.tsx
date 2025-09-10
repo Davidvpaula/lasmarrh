@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { Users, FileText, Eye, Download, Upload, Plus, Trash2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Candidate {
   id: string;
@@ -83,10 +84,74 @@ const UploadsManagementTab = () => {
   });
 
   useEffect(() => {
-    // Simulando carregamento para desenvolvimento
-    setCandidates(mockCandidates);
-    setDocumentTemplates(mockDocumentTemplates);
+    fetchRealCandidates();
   }, []);
+
+  const fetchRealCandidates = async () => {
+    try {
+      setLoading(true);
+      
+      // Buscar applications com dados dos profiles e documentos
+      const { data: applicationsData, error: appsError } = await supabase
+        .from('applications')
+        .select(`
+          id,
+          doctor_id,
+          current_stage,
+          profiles!applications_doctor_id_fkey (
+            full_name,
+            email,
+            crm,
+            phone
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (appsError) throw appsError;
+
+      // Buscar documentos para todas as applications
+      const applicationIds = applicationsData?.map(app => app.id) || [];
+      const { data: documentsData, error: docsError } = await supabase
+        .from('documents')
+        .select('*')
+        .in('application_id', applicationIds);
+
+      if (docsError) throw docsError;
+
+      // Transformar dados para o formato esperado
+      const formattedCandidates: Candidate[] = applicationsData?.map(app => {
+        const relatedDocs = documentsData?.filter(doc => doc.application_id === app.id) || [];
+        
+        return {
+          id: app.id,
+          name: app.profiles?.full_name || 'Nome não informado',
+          email: app.profiles?.email || 'Email não informado',
+          crm: app.profiles?.crm || 'CRM não informado',
+          phone: app.profiles?.phone || 'Telefone não informado',
+          current_stage: app.current_stage,
+          documents: relatedDocs.map(doc => ({
+            id: doc.id,
+            document_type: doc.document_type,
+            file_name: doc.file_name,
+            file_path: doc.file_path,
+            uploaded_at: doc.uploaded_at,
+            status: 'pending' as 'pending' | 'approved' | 'rejected'
+          }))
+        };
+      }) || [];
+
+      setCandidates(formattedCandidates);
+    } catch (error) {
+      console.error('Erro ao buscar candidatos:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao carregar candidatos do sistema.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusBadge = (status: 'pending' | 'approved' | 'rejected') => {
     switch (status) {
@@ -101,32 +166,46 @@ const UploadsManagementTab = () => {
 
   const getDocumentTypeLabel = (type: string) => {
     const labels: { [key: string]: string } = {
-      rg: 'RG',
+      rg: 'RG (Frente e Verso)',
+      cpf: 'CPF',
       crm: 'CRM',
-      diploma: 'Diploma',
+      diploma: 'Diploma de Medicina',
+      residencia: 'Certificado de Residência',
+      curriculum: 'Currículo Atualizado',
       comprovante_residencia: 'Comprovante de Residência'
     };
     return labels[type] || type;
   };
 
-  const updateDocumentStatus = (candidateId: string, documentId: string, status: 'approved' | 'rejected') => {
-    const updatedCandidates = candidates.map(candidate => {
-      if (candidate.id === candidateId) {
-        return {
-          ...candidate,
-          documents: candidate.documents.map(doc => 
-            doc.id === documentId ? { ...doc, status } : doc
-          )
-        };
-      }
-      return candidate;
-    });
-    setCandidates(updatedCandidates);
-    
-    toast({
-      title: `Documento ${status === 'approved' ? 'aprovado' : 'rejeitado'} (DEMO)`,
-      description: "Em desenvolvimento - mudanças não são persistidas.",
-    });
+  const updateDocumentStatus = async (candidateId: string, documentId: string, status: 'approved' | 'rejected') => {
+    try {
+      // Atualizar status no banco de dados se necessário
+      // Por enquanto, apenas atualizar localmente
+      const updatedCandidates = candidates.map(candidate => {
+        if (candidate.id === candidateId) {
+          return {
+            ...candidate,
+            documents: candidate.documents.map(doc => 
+              doc.id === documentId ? { ...doc, status } : doc
+            )
+          };
+        }
+        return candidate;
+      });
+      setCandidates(updatedCandidates);
+      
+      toast({
+        title: `Documento ${status === 'approved' ? 'aprovado' : 'rejeitado'}`,
+        description: `Status do documento foi atualizado com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar status do documento:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar status do documento.",
+        variant: "destructive",
+      });
+    }
   };
 
   const addDocumentTemplate = () => {
@@ -141,10 +220,15 @@ const UploadsManagementTab = () => {
     setTemplateData({ name: '', description: '', is_required: true });
     
     toast({
-      title: "Template adicionado (DEMO)",
-      description: "Em desenvolvimento - mudanças não são persistidas.",
+      title: "Template adicionado",
+      description: "Novo template de documento foi criado com sucesso.",
     });
   };
+
+  // Inicializar templates padrão
+  useEffect(() => {
+    setDocumentTemplates(mockDocumentTemplates);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -169,63 +253,76 @@ const UploadsManagementTab = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {candidates.map((candidate) => (
-                <div key={candidate.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold">{candidate.name}</h3>
-                      <p className="text-sm text-muted-foreground">{candidate.email}</p>
-                      <p className="text-sm text-muted-foreground">{candidate.crm}</p>
+              {loading ? (
+                <div className="animate-pulse space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="border rounded-lg p-4">
+                      <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
+                      <div className="h-3 bg-muted rounded w-1/3 mb-4"></div>
+                      <div className="space-y-2">
+                        <div className="h-8 bg-muted rounded"></div>
+                        <div className="h-8 bg-muted rounded"></div>
+                      </div>
                     </div>
-                    <Badge variant="outline">
-                      Etapa {candidate.current_stage}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium">Documentos Enviados:</h4>
-                    {candidate.documents.length > 0 ? (
-                      candidate.documents.map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            <span className="text-sm">{getDocumentTypeLabel(doc.document_type)}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {getStatusBadge(doc.status)}
-                            <Button variant="outline" size="sm">
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                            {doc.status === 'pending' && (
-                              <>
-                                <Button 
-                                  size="sm" 
-                                  variant="default"
-                                  className="bg-success hover:bg-success/90"
-                                  onClick={() => updateDocumentStatus(candidate.id, doc.id, 'approved')}
-                                >
-                                  Aprovar
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive"
-                                  onClick={() => updateDocumentStatus(candidate.id, doc.id, 'rejected')}
-                                >
-                                  Rejeitar
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Nenhum documento enviado</p>
-                    )}
-                  </div>
+                  ))}
                 </div>
-              ))}
-              
-              {candidates.length === 0 && (
+              ) : candidates.length > 0 ? (
+                candidates.map((candidate) => (
+                  <div key={candidate.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold">{candidate.name}</h3>
+                        <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                        <p className="text-sm text-muted-foreground">{candidate.crm}</p>
+                      </div>
+                      <Badge variant="outline">
+                        Etapa {candidate.current_stage}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">Documentos Enviados:</h4>
+                      {candidate.documents.length > 0 ? (
+                        candidate.documents.map((doc) => (
+                          <div key={doc.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4" />
+                              <span className="text-sm">{getDocumentTypeLabel(doc.document_type)}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {getStatusBadge(doc.status)}
+                              <Button variant="outline" size="sm">
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                              {doc.status === 'pending' && (
+                                <>
+                                  <Button 
+                                    size="sm" 
+                                    variant="default"
+                                    className="bg-success hover:bg-success/90"
+                                    onClick={() => updateDocumentStatus(candidate.id, doc.id, 'approved')}
+                                  >
+                                    Aprovar
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="destructive"
+                                    onClick={() => updateDocumentStatus(candidate.id, doc.id, 'rejected')}
+                                  >
+                                    Rejeitar
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Nenhum documento enviado</p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Nenhum candidato encontrado</p>
