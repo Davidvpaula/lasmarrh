@@ -351,7 +351,7 @@ const Index = () => {
                   <tr className="bg-gradient-primary text-white">
                     <th className="p-3 text-left font-bold text-sm">Categoria</th>
                     <th className="p-3 text-center font-bold text-sm">Profissional da Saúde</th>
-                    <th className="p-3 text-center font-bold text-sm">Cooperado</th>
+                    <th className="p-3 text-center font-bold text-sm">Cooperado Médico</th>
                   </tr>
                 </thead>
                 <tbody>
