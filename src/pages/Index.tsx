@@ -176,14 +176,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Faixa 4 - Benefícios Sem RQE */}
+      {/* Faixa 4 - Profissional da Saúde */}
       <section className="py-16 bg-gradient-to-r from-blue-50 to-cyan-50">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <Card className="shadow-xl border-2 border-primary/20 hover:shadow-2xl transition-all duration-300">
               <CardHeader className="text-center bg-gradient-primary text-white">
                 <CardTitle className="text-2xl sm:text-3xl font-bold">
-                  Profissional da Saúde sem RQE
+                  Profissional da Saúde
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8">
@@ -194,7 +194,7 @@ const Index = () => {
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
                     <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
-                    <span className="text-sm sm:text-base"><strong>Dedução por consulta: 41%</strong></span>
+                    <span className="text-sm sm:text-base"><strong>Dedução por consulta: X%</strong></span>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
                     <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
@@ -211,49 +211,6 @@ const Index = () => {
                   <div className="flex items-center gap-2 sm:gap-3">
                     <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground flex-shrink-0" />
                     <span className="text-muted-foreground text-sm sm:text-base">Sem anúncios Google Ads direcionados</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Faixa 5 - Benefícios Com RQE */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <Card className="shadow-xl border-2 border-secondary/20 hover:shadow-2xl transition-all duration-300">
-              <CardHeader className="text-center bg-gradient-secondary text-white">
-                <CardTitle className="text-2xl sm:text-3xl font-bold">
-                  Profissional da Saúde com RQE
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-6 w-6 text-success flex-shrink-0" />
-                    <span>Secretário comunitário</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <DollarSign className="h-6 w-6 text-success flex-shrink-0" />
-                    <span><strong>Dedução por consulta: 36,8%</strong></span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-6 w-6 text-success flex-shrink-0" />
-                    <span>Prontuário eletrônico (aberto, sem backup)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-6 w-6 text-success flex-shrink-0" />
-                    <span>Flexibilidade total e controle da agenda</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Smartphone className="h-6 w-6 text-success flex-shrink-0" />
-                    <span>Landing Page simples (padrão)</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-6 w-6 text-muted-foreground flex-shrink-0" />
-                    <span className="text-muted-foreground">Sem anúncios Google Ads direcionados</span>
                   </div>
                 </div>
               </CardContent>
@@ -335,49 +292,42 @@ const Index = () => {
             <h2 className="text-3xl sm:text-4xl font-bold text-center text-foreground mb-12">Tabela Comparativa Visual</h2>
             
             <div className="overflow-x-auto shadow-xl rounded-2xl">
-              <table className="w-full min-w-[580px]">
+              <table className="w-full min-w-[480px]">
                 <thead>
                   <tr className="bg-gradient-primary text-white">
                     <th className="p-2 sm:p-3 md:p-4 text-left font-bold text-xs sm:text-sm md:text-base">Categoria</th>
-                    <th className="p-2 sm:p-3 md:p-4 text-center font-bold text-xs sm:text-sm md:text-base">Sem RQE</th>
-                    <th className="p-2 sm:p-3 md:p-4 text-center font-bold text-xs sm:text-sm md:text-base">Com RQE</th>
+                    <th className="p-2 sm:p-3 md:p-4 text-center font-bold text-xs sm:text-sm md:text-base">Profissional da Saúde</th>
                     <th className="p-2 sm:p-3 md:p-4 text-center font-bold text-xs sm:text-sm md:text-base">Cooperado</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Dedução por consulta</td>
-                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">41%</td>
-                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">36,8%</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">X%</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-xs sm:text-sm md:text-base">27%</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Prontuário</td>
-                    <td className="p-2 sm:p-3 md:p-4 text-center text-[10px] sm:text-xs md:text-sm">Aberto<br/>(sem backup)</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center text-[10px] sm:text-xs md:text-sm">Aberto<br/>(sem backup)</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Fechado<br/>(com backup)</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Secretaria</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Comunitária</td>
-                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Comunitária</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Exclusiva +<br/>Vendedor até 22h</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Landing Page</td>
-                    <td className="p-2 sm:p-3 md:p-4 text-center text-[10px] sm:text-xs md:text-sm">Simples<br/>(padrão)</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center text-[10px] sm:text-xs md:text-sm">Simples<br/>(padrão)</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Personalizada<br/>(Google Ads incluso)</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Marketing/Anúncios</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Não incluso</td>
-                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Não incluso</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Google Ads +<br/>Google Maps</td>
                   </tr>
                   <tr className="hover:bg-gray-50">
                     <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Suporte TI</td>
-                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Básico</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Básico</td>
                     <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Avançado<br/>(R$ 300,00)</td>
                   </tr>
