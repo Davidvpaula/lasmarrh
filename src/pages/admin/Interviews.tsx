@@ -128,7 +128,8 @@ export default function Interviews() {
               interview.status === 'rejected' ? 'destructive' : 'secondary'
             }>
               {interview.status === 'approved' ? 'Aprovada' :
-               interview.status === 'rejected' ? 'Rejeitada' : 'Pendente'}
+               interview.status === 'rejected' ? 'Rejeitada' : 
+               interview.status === 'in_progress' ? 'Em Andamento' : 'Pendente'}
             </Badge>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
@@ -164,7 +165,7 @@ export default function Interviews() {
           ))}
         </div>
         
-        {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending') && (
+        {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress') && (
           <div className="flex gap-2 mt-6 pt-4 border-t">
             <Button
               onClick={() => handleStatusUpdate(interview.application_id, 'approved')}
@@ -233,7 +234,7 @@ export default function Interviews() {
         </TabsContent>
 
         <TabsContent value="pending" className="space-y-4">
-          {interviews.filter(i => i.status === 'active' || i.status === 'available' || i.status === 'pending').length === 0 ? (
+          {interviews.filter(i => i.status === 'active' || i.status === 'available' || i.status === 'pending' || i.status === 'in_progress').length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -241,7 +242,7 @@ export default function Interviews() {
               </CardContent>
             </Card>
           ) : (
-            interviews.filter(i => i.status === 'active' || i.status === 'available' || i.status === 'pending').map((interview) => renderInterviewCard(interview))
+            interviews.filter(i => i.status === 'active' || i.status === 'available' || i.status === 'pending' || i.status === 'in_progress').map((interview) => renderInterviewCard(interview))
           )}
         </TabsContent>
 
