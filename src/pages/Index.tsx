@@ -282,7 +282,7 @@ const Index = () => {
                 <div className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="bg-primary/10 p-4 rounded-lg">
-                      <div className="font-bold text-primary text-xl mb-2">R$ 500,00</div>
+                      <div className="font-bold text-primary text-xl mb-2">R$ XX,XX</div>
                       <div className="text-sm">Vendedor disponível até 22h (triagem automática)</div>
                     </div>
                     <div className="bg-secondary/10 p-4 rounded-lg">
