@@ -11,7 +11,8 @@ import {
   Calendar,
   Upload,
   MessageSquare,
-  FolderOpen
+  FolderOpen,
+  Play
 } from "lucide-react"
 import {
   Sidebar,
@@ -105,6 +106,7 @@ export function AppSidebar() {
     { title: "Treinamento", url: "/admin/training", icon: GraduationCap },
     { title: "Uploads", url: "/admin/uploads", icon: Upload },
     { title: "Configurações", url: "/admin/settings", icon: Settings },
+    { title: "Sistema Tester", url: "/admin/system-tester", icon: Play },
   ]
 
   const items = isAdminContext ? adminItems : doctorItems

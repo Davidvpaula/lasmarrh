@@ -19,6 +19,7 @@ import Settings from './pages/admin/Settings';
 import Interviews from './pages/admin/Interviews';
 import Forms from './pages/admin/Forms';
 import AdminTraining from './pages/admin/Training';
+import SystemTesterPage from './pages/admin/SystemTester';
 import NotFound from './pages/NotFound';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { Toaster } from '@/components/ui/toaster';
@@ -94,6 +95,7 @@ function AppContent() {
             <Route path="/admin/administrators" element={<Administrators />} />
             <Route path="/admin/uploads" element={<Uploads />} />
             <Route path="/admin/settings" element={<Settings />} />
+            <Route path="/admin/system-tester" element={<SystemTesterPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
