@@ -82,9 +82,14 @@ const AdminAuth = () => {
       <div className="w-full max-w-md">
         {/* Back Button */}
         <Button
+          type="button"
           variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-6 p-2"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            navigate('/');
+          }}
+          className="mb-6 p-2 hover:bg-muted/50 hover:text-primary transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
