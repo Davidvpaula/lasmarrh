@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -14,7 +15,8 @@ import {
   Mail, 
   Database,
   Save,
-  RefreshCw
+  RefreshCw,
+  UserPlus
 } from 'lucide-react';
 
 const Settings = () => {
@@ -30,6 +32,12 @@ const Settings = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [newAdmin, setNewAdmin] = useState({
+    email: '',
+    password: '',
+    fullName: ''
+  });
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
 
   const handleSave = async () => {
     setLoading(true);
@@ -57,6 +65,48 @@ const Settings = () => {
       ...prev,
       [key]: value
     }));
+  };
+
+  const handleCreateAdmin = async () => {
+    if (!newAdmin.email || !newAdmin.password || !newAdmin.fullName) {
+      toast({
+        title: "Erro",
+        description: "Todos os campos são obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCreatingAdmin(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: newAdmin.email,
+        password: newAdmin.password,
+        options: {
+          data: {
+            full_name: newAdmin.fullName,
+            role: 'admin'
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Administrador criado",
+        description: `Novo administrador ${newAdmin.fullName} foi criado com sucesso.`,
+      });
+
+      setNewAdmin({ email: '', password: '', fullName: '' });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao criar o administrador.",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingAdmin(false);
+    }
   };
 
   return (
@@ -224,6 +274,73 @@ const Settings = () => {
               <Button variant="outline" className="w-full">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Fazer Backup Agora
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Create Admin User */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5" />
+                Criar Novo Administrador
+              </CardTitle>
+              <CardDescription>
+                Criar uma nova conta de administrador para o sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="newAdminName">Nome Completo</Label>
+                <Input
+                  id="newAdminName"
+                  value={newAdmin.fullName}
+                  onChange={(e) => setNewAdmin(prev => ({ ...prev, fullName: e.target.value }))}
+                  placeholder="Nome completo do administrador"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="newAdminEmail">Email</Label>
+                <Input
+                  id="newAdminEmail"
+                  type="email"
+                  value={newAdmin.email}
+                  onChange={(e) => setNewAdmin(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="email@example.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="newAdminPassword">Senha</Label>
+                <Input
+                  id="newAdminPassword"
+                  type="password"
+                  value={newAdmin.password}
+                  onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder="Senha segura"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Mínimo de 6 caracteres
+                </p>
+              </div>
+
+              <Button 
+                onClick={handleCreateAdmin} 
+                disabled={creatingAdmin}
+                className="w-full"
+              >
+                {creatingAdmin ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Criar Administrador
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
