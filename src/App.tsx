@@ -19,23 +19,39 @@ import Interviews from './pages/admin/Interviews';
 import Forms from './pages/admin/Forms';
 import AdminTraining from './pages/admin/Training';
 import NotFound from './pages/NotFound';
-import { AuthProvider } from './hooks/useAuth';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 import { Toaster } from '@/components/ui/toaster';
 import './App.css';
 
 function AppContent() {
-  // Desabilitando autenticação temporariamente
-  const isAuthenticated = true; // Sempre true por enquanto
-  const isAuthPage = false; // Sempre false para acessar dashboards
+  const { user, loading } = useAuth();
+  const isAuthenticated = !!user;
+  const isAuthPage = window.location.pathname === '/auth' || window.location.pathname === '/';
 
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
+
+  // Public routes that don't need sidebar
+  if (isAuthPage || !isAuthenticated) {
+    return (
+      <div className="min-h-screen">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="*" element={<Auth />} />
+        </Routes>
+      </div>
+    );
+  }
+
+  // Protected routes with sidebar
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <main className="flex-1 overflow-hidden">
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/professional" element={<DoctorDashboard />} />
             <Route path="/dashboard/admin" element={<AdminDashboard />} />
