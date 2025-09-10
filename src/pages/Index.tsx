@@ -39,7 +39,8 @@ const Index = () => {
             <img 
               src="/lovable-uploads/91791353-fd2d-4472-9b14-67723fe916c4.png" 
               alt="Lasmar Telemed" 
-              className="h-8 sm:h-10 md:h-12 w-auto"
+              className="h-8 sm:h-10 md:h-12 w-auto cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => window.open('https://www.telemedlasmar.com.br/', '_blank')}
             />
           </div>
           
@@ -78,7 +79,8 @@ const Index = () => {
               <img 
                 src="/lovable-uploads/91791353-fd2d-4472-9b14-67723fe916c4.png" 
                 alt="Lasmar Telemed" 
-                className="h-16 sm:h-24 md:h-32 lg:h-40 w-auto mx-auto mb-4 sm:mb-8 hover-scale"
+                className="h-16 sm:h-24 md:h-32 lg:h-40 w-auto mx-auto mb-4 sm:mb-8 hover-scale cursor-pointer"
+                onClick={() => window.open('https://www.telemedlasmar.com.br/', '_blank')}
               />
             </div>
             
