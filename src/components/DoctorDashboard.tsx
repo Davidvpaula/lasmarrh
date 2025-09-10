@@ -247,12 +247,6 @@ const DoctorDashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {stageData?.notes && (
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {stageData.notes}
-                    </p>
-                  )}
-                  
                   {status === 'available' && (
                     <Button 
                       className="bg-gradient-primary hover:bg-primary-hover"
@@ -332,12 +326,6 @@ const DoctorDashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {stageData?.notes && (
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {stageData.notes}
-                      </p>
-                    )}
-                    
                     {status === 'available' && (
                       <Button 
                         variant="secondary"
