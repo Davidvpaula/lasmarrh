@@ -34,8 +34,20 @@ function AppContent() {
     return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
   }
 
-  // Public routes that don't need sidebar
-  if (isAuthPage || !isAuthenticated) {
+  // If not authenticated, check which login to show based on path
+  if (!isAuthenticated) {
+    // If trying to access admin routes, redirect to admin auth
+    if (currentPath.startsWith('/admin') || currentPath === '/dashboard/admin') {
+      return (
+        <div className="min-h-screen">
+          <Routes>
+            <Route path="*" element={<AdminAuth />} />
+          </Routes>
+        </div>
+      );
+    }
+    
+    // For all other unauthenticated routes, show appropriate auth pages
     return (
       <div className="min-h-screen">
         <Routes>
@@ -47,6 +59,17 @@ function AppContent() {
         </Routes>
       </div>
     );
+  }
+
+  // If authenticated but trying to access auth pages, redirect based on role
+  if (isAuthPage && isAuthenticated && profile) {
+    if (profile.role === 'admin') {
+      window.location.href = '/dashboard/admin';
+      return null;
+    } else {
+      window.location.href = '/dashboard/professional';
+      return null;
+    }
   }
 
   // Protected routes with sidebar
