@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import doctorTeleconsult1 from '@/assets/doctor-teleconsult-1.jpg';
 import doctorTeleconsult2 from '@/assets/doctor-teleconsult-2.jpg';
 import medicalTeamTelemed from '@/assets/medical-team-telemed.jpg';
-import medicalEntrepreneur from '@/assets/medical-entrepreneur.jpg';
+import medicalDigitalPlatform from '@/assets/medical-digital-platform.jpg';
 
 const Index = () => {
   const { user, profile } = useAuth();
@@ -229,8 +229,8 @@ const Index = () => {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="relative">
                 <img 
-                  src={medicalEntrepreneur} 
-                  alt="Empreendedorismo médico e telemedicina" 
+                  src={medicalDigitalPlatform} 
+                  alt="Plataforma digital médica e telemedicina" 
                   className="w-full h-80 object-cover rounded-2xl shadow-xl"
                 />
               </div>
