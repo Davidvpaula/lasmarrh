@@ -284,8 +284,7 @@ const Index = () => {
                     <div className="flex items-start gap-3">
                       <span className="text-red-500 text-xl">⚠️</span>
                       <div className="text-sm text-red-700">
-                        <strong>Observação:</strong> Para se tornar cooperado, é necessário atender alguns pré-requisitos da plataforma. 
-                        Trabalhamos apenas com especialidades que têm demanda comprovada em teleconsulta, garantindo que o profissional realmente tenha lucro justo.
+                        <strong>Observação:</strong> Para se tornar cooperado, é preciso atender aos pré-requisitos da plataforma. Trabalhamos apenas com especialidades que já possuem demanda comprovada em teleconsulta, o que garante maior segurança no retorno do investimento. Vale lembrar que a adesão ao serviço de cooperado é totalmente opcional.
                       </div>
                     </div>
                   </div>
