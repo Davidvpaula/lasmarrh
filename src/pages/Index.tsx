@@ -356,7 +356,7 @@ const Index = () => {
               Seja parte da Lasmar Telemed e transforme sua carreira em teleconsulta.
             </h2>
             
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
+            <div className="flex justify-center items-center">
               <Button 
                 onClick={() => handleNavigate('/auth')}
                 size="lg"
@@ -364,13 +364,6 @@ const Index = () => {
                 className="bg-white text-primary hover:bg-gray-100 border-white px-6 sm:px-8 md:px-12 py-4 sm:py-6 text-lg sm:text-xl font-semibold shadow-xl hover:scale-105 transition-all duration-300 w-full sm:w-auto"
               >
                 Trabalhe Conosco
-              </Button>
-              <Button 
-                onClick={() => handleNavigate('/auth')}
-                size="lg"
-                className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border-white/30 px-6 sm:px-8 md:px-12 py-4 sm:py-6 text-lg sm:text-xl font-semibold shadow-xl hover:scale-105 transition-all duration-300 w-full sm:w-auto"
-              >
-                Cadastre-se Agora
               </Button>
             </div>
             
