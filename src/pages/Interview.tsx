@@ -183,11 +183,11 @@ const Interview = () => {
           .eq('stage_number', 2);
 
         toast({
-          title: "Formulário enviado!",
-          description: "Suas respostas foram enviadas para análise do administrador.",
+          title: "Obrigado por querer fazer parte da nossa equipe!",
+          description: "Em breve entraremos em contato com você.",
         });
 
-        navigate('/dashboard');
+        navigate('/dashboard/professional');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
