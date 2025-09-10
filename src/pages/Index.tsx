@@ -56,7 +56,7 @@ const Index = () => {
           <div className="text-center mb-16 animate-fade-in">
             <div className="flex justify-center mb-8">
               <img 
-                src="/lovable-uploads/7a3d7871-85e8-4aa7-beaa-6739476bb1e5.png" 
+                src="/lovable-uploads/91791353-fd2d-4472-9b14-67723fe916c4.png" 
                 alt="Lasmar Telemed" 
                 className="h-24 sm:h-32 lg:h-40 w-auto hover-scale"
               />
@@ -167,7 +167,7 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src="/lovable-uploads/7a3d7871-85e8-4aa7-beaa-6739476bb1e5.png" 
+              src="/lovable-uploads/91791353-fd2d-4472-9b14-67723fe916c4.png" 
               alt="Lasmar Telemed" 
               className="h-8 w-auto opacity-70"
             />

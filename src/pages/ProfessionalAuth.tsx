@@ -158,7 +158,7 @@ const ProfessionalAuth = () => {
           <CardHeader className="text-center pb-4">
             <div className="mx-auto mb-4">
               <img 
-                src="/lovable-uploads/7a3d7871-85e8-4aa7-beaa-6739476bb1e5.png" 
+                src="/lovable-uploads/91791353-fd2d-4472-9b14-67723fe916c4.png" 
                 alt="Lasmar Telemed" 
                 className="h-16 w-auto mx-auto"
               />
