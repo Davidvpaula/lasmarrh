@@ -17,28 +17,37 @@ export type Database = {
       active_sessions: {
         Row: {
           created_at: string
+          expires_at: string | null
           id: string
           ip_address: unknown | null
+          is_active: boolean | null
           last_activity: string
-          session_token: string
+          session_fingerprint: string | null
+          session_hash: string | null
           user_agent: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           ip_address?: unknown | null
+          is_active?: boolean | null
           last_activity?: string
-          session_token: string
+          session_fingerprint?: string | null
+          session_hash?: string | null
           user_agent?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           ip_address?: unknown | null
+          is_active?: boolean | null
           last_activity?: string
-          session_token?: string
+          session_fingerprint?: string | null
+          session_hash?: string | null
           user_agent?: string | null
           user_id?: string
         }
@@ -353,6 +362,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       is_admin: {
         Args: { _uid: string }
         Returns: boolean
