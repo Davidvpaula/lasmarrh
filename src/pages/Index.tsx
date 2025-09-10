@@ -56,7 +56,7 @@ const Index = () => {
           <div className="text-center mb-16 animate-fade-in">
             <div className="flex justify-center mb-8">
               <img 
-                src="/lovable-uploads/f21911e1-af93-4bce-9178-049ecf77fa16.png" 
+                src="/lovable-uploads/7a3d7871-85e8-4aa7-beaa-6739476bb1e5.png" 
                 alt="Lasmar Telemed" 
                 className="h-24 sm:h-32 lg:h-40 w-auto hover-scale"
               />
@@ -142,7 +142,7 @@ const Index = () => {
               </CardHeader>
               <CardContent className="text-center px-6 pb-8">
                 <div className="mb-6 rounded-lg overflow-hidden">
-                  <img src={medicalTeamTelemed} alt="Equipe médica trabalhando" className="w-full h-32 object-cover opacity-80" />
+                  <img src="/lovable-uploads/86231256-1c8d-4fc8-b163-a7b77b95e5f1.png" alt="Equipe médica em videoconferência" className="w-full h-32 object-cover opacity-80" />
                 </div>
                 <p className="text-sm lg:text-base text-muted-foreground mb-8 leading-relaxed">
                   Controle completo da plataforma e equipe médica
@@ -167,7 +167,7 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src="/lovable-uploads/f21911e1-af93-4bce-9178-049ecf77fa16.png" 
+              src="/lovable-uploads/7a3d7871-85e8-4aa7-beaa-6739476bb1e5.png" 
               alt="Lasmar Telemed" 
               className="h-8 w-auto opacity-70"
             />
