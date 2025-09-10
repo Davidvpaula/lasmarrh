@@ -335,51 +335,51 @@ const Index = () => {
             <h2 className="text-3xl sm:text-4xl font-bold text-center text-foreground mb-12">Tabela Comparativa Visual</h2>
             
             <div className="overflow-x-auto shadow-xl rounded-2xl">
-              <table className="w-full min-w-[640px]">
+              <table className="w-full min-w-[580px]">
                 <thead>
                   <tr className="bg-gradient-primary text-white">
-                    <th className="p-2 sm:p-4 text-left font-bold text-sm sm:text-base">Categoria</th>
-                    <th className="p-2 sm:p-4 text-center font-bold text-sm sm:text-base">Sem RQE</th>
-                    <th className="p-2 sm:p-4 text-center font-bold text-sm sm:text-base">Com RQE</th>
-                    <th className="p-2 sm:p-4 text-center font-bold text-sm sm:text-base">Cooperado Médico</th>
+                    <th className="p-2 sm:p-3 md:p-4 text-left font-bold text-xs sm:text-sm md:text-base">Categoria</th>
+                    <th className="p-2 sm:p-3 md:p-4 text-center font-bold text-xs sm:text-sm md:text-base">Sem RQE</th>
+                    <th className="p-2 sm:p-3 md:p-4 text-center font-bold text-xs sm:text-sm md:text-base">Com RQE</th>
+                    <th className="p-2 sm:p-3 md:p-4 text-center font-bold text-xs sm:text-sm md:text-base">Cooperado</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-b hover:bg-gray-50">
-                    <td className="p-2 sm:p-4 font-semibold text-sm sm:text-base">Dedução por consulta</td>
-                    <td className="p-2 sm:p-4 text-center text-sm sm:text-base">41%</td>
-                    <td className="p-2 sm:p-4 text-center text-sm sm:text-base">36,8%</td>
-                    <td className="p-2 sm:p-4 text-center font-bold text-success text-sm sm:text-base">27%</td>
+                    <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Dedução por consulta</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">41%</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">36,8%</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-xs sm:text-sm md:text-base">27%</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
-                    <td className="p-2 sm:p-4 font-semibold text-sm sm:text-base">Prontuário</td>
-                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Aberto (sem backup)</td>
-                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Aberto (sem backup)</td>
-                    <td className="p-2 sm:p-4 text-center font-bold text-success text-xs sm:text-sm">Fechado (com backup)</td>
+                    <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Prontuário</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-[10px] sm:text-xs md:text-sm">Aberto<br/>(sem backup)</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-[10px] sm:text-xs md:text-sm">Aberto<br/>(sem backup)</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Fechado<br/>(com backup)</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
-                    <td className="p-2 sm:p-4 font-semibold text-sm sm:text-base">Secretaria</td>
-                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Comunitária</td>
-                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Comunitária</td>
-                    <td className="p-2 sm:p-4 text-center font-bold text-success text-xs sm:text-sm">Exclusiva + Vendedor até 22h</td>
+                    <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Secretaria</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Comunitária</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Comunitária</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Exclusiva +<br/>Vendedor até 22h</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
-                    <td className="p-2 sm:p-4 font-semibold text-sm sm:text-base">Landing Page</td>
-                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Simples (padrão)</td>
-                    <td className="p-2 sm:p-4 text-center text-xs sm:text-sm">Simples (padrão)</td>
-                    <td className="p-2 sm:p-4 text-center font-bold text-success text-xs sm:text-sm">Personalizada (Google Ads incluso)</td>
+                    <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Landing Page</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-[10px] sm:text-xs md:text-sm">Simples<br/>(padrão)</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-[10px] sm:text-xs md:text-sm">Simples<br/>(padrão)</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Personalizada<br/>(Google Ads incluso)</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
-                    <td className="p-4 font-semibold">Marketing/Anúncios</td>
-                    <td className="p-4 text-center">Não incluso</td>
-                    <td className="p-4 text-center">Não incluso</td>
-                    <td className="p-4 text-center font-bold text-success">Google Ads + Google Maps</td>
+                    <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Marketing/Anúncios</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Não incluso</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Não incluso</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Google Ads +<br/>Google Maps</td>
                   </tr>
                   <tr className="hover:bg-gray-50">
-                    <td className="p-4 font-semibold">Suporte TI</td>
-                    <td className="p-4 text-center">Básico</td>
-                    <td className="p-4 text-center">Básico</td>
-                    <td className="p-4 text-center font-bold text-success">Avançado (R$ 300,00)</td>
+                    <td className="p-2 sm:p-3 md:p-4 font-semibold text-xs sm:text-sm md:text-base">Suporte TI</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Básico</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center text-xs sm:text-sm md:text-base">Básico</td>
+                    <td className="p-2 sm:p-3 md:p-4 text-center font-bold text-success text-[10px] sm:text-xs md:text-sm">Avançado<br/>(R$ 300,00)</td>
                   </tr>
                 </tbody>
               </table>
