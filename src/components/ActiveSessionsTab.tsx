@@ -10,11 +10,13 @@ import { User, Monitor, Calendar, MapPin, X } from 'lucide-react';
 interface ActiveSession {
   id: string;
   user_id: string;
-  session_token: string;
+  session_fingerprint: string | null;
   ip_address: string | null;
   user_agent: string | null;
   last_activity: string;
   created_at: string;
+  expires_at: string;
+  is_active: boolean;
   profiles?: {
     full_name: string;
     email: string;
@@ -33,8 +35,6 @@ export const ActiveSessionsTab = () => {
   const loadActiveSessions = async () => {
     setLoading(true);
     try {
-      // Para simplificar, vamos simular algumas sessões ativas
-      // Em um ambiente real, isso seria mantido pelo sistema de autenticação
       const { data: currentUser } = await supabase.auth.getUser();
       
       if (currentUser.user) {
@@ -44,15 +44,17 @@ export const ActiveSessionsTab = () => {
 
         if (profileError) throw profileError;
 
-        // Simular sessões ativas com base nos usuários existentes
+        // Create secure mock sessions without exposing tokens
         const mockSessions: ActiveSession[] = profiles?.map((profile, index) => ({
           id: `session-${profile.user_id}`,
           user_id: profile.user_id,
-          session_token: `token-${Date.now()}-${index}`,
+          session_fingerprint: `fp-${Date.now()}-${index}`,
           ip_address: index === 0 ? '192.168.1.100' : `203.0.113.${100 + index}`,
           user_agent: index % 2 === 0 ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0.4472.124' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Firefox/89.0',
           last_activity: new Date(Date.now() - Math.random() * 3600000).toISOString(),
           created_at: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+          expires_at: new Date(Date.now() + 30 * 24 * 3600000).toISOString(), // 30 days from now
+          is_active: true,
           profiles: {
             full_name: profile.full_name,
             email: profile.email,
@@ -207,7 +209,9 @@ export const ActiveSessionsTab = () => {
 
                     <div className="text-xs text-muted-foreground">
                       IP: {session.ip_address} • 
-                      Criado em: {new Date(session.created_at).toLocaleString('pt-BR')}
+                      Criado em: {new Date(session.created_at).toLocaleString('pt-BR')} •
+                      Expira em: {new Date(session.expires_at).toLocaleString('pt-BR')}
+                      {session.session_fingerprint && ` • ID da Sessão: ${session.session_fingerprint.substring(0, 12)}...`}
                     </div>
                   </div>
 
