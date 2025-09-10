@@ -49,7 +49,10 @@ const Auth = () => {
     const { error } = await signIn(loginData.email, loginData.password);
     
     if (!error) {
-      navigate('/dashboard');
+      // Aguardar um pouco para o perfil ser carregado
+      setTimeout(() => {
+        navigate('/dashboard/professional');
+      }, 1000);
     }
     setLoginLoading(false);
   };
@@ -90,13 +93,12 @@ const Auth = () => {
     if (!error) {
       toast({
         title: "Cadastro realizado!",
-        description: "Você já pode fazer login com suas credenciais.",
+        description: "Redirecionando para o dashboard...",
       });
-      // Switch to login tab
-      const loginTab = document.querySelector('[data-state="active"][value="login"]');
-      if (loginTab) {
-        (loginTab as HTMLElement).click();
-      }
+      // Redirecionar diretamente para o dashboard profissional após cadastro
+      setTimeout(() => {
+        navigate('/dashboard/professional');
+      }, 1500);
     }
     setSignupLoading(false);
   };
@@ -106,7 +108,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/dashboard/professional`,
         }
       });
       

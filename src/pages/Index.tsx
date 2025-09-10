@@ -1,10 +1,27 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, UserPlus, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
+  const { user, profile } = useAuth();
+  
   const handleNavigate = (path: string) => {
     window.location.href = path;
+  };
+  
+  const handleRestrictedAccess = (path: string, title: string) => {
+    if (!user) {
+      handleNavigate('/auth');
+      return;
+    }
+    
+    // Verificar permissões para admin
+    if (path.includes('/admin') && profile?.role !== 'admin') {
+      return; // Não permite acesso
+    }
+    
+    handleNavigate(path);
   };
 
   return (
@@ -56,12 +73,12 @@ const Index = () => {
                 Visualize progresso, documentos, treinamentos e mais
               </p>
               <Button 
-                onClick={() => handleNavigate('/dashboard/professional')}
+                onClick={() => handleRestrictedAccess('/dashboard/professional', 'Dashboard Profissional')}
                 variant="secondary"
                 className="w-full"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                Acessar Dashboard
+                {user ? 'Acessar Dashboard' : 'Entrar para Acessar'}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </CardContent>
@@ -83,11 +100,12 @@ const Index = () => {
                 Controle completo de candidaturas, treinamentos e usuários
               </p>
               <Button 
-                onClick={() => handleNavigate('/dashboard/admin')}
+                onClick={() => handleRestrictedAccess('/dashboard/admin', 'Dashboard Administrativo')}
                 className="w-full bg-gradient-primary hover:bg-primary-hover"
+                disabled={user && profile?.role !== 'admin'}
               >
                 <Shield className="h-4 w-4 mr-2" />
-                Acessar Dashboard
+                {!user ? 'Entrar para Acessar' : (profile?.role === 'admin' ? 'Acessar Dashboard' : 'Acesso Restrito')}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </CardContent>
