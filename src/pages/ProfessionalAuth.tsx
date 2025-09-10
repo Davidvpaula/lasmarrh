@@ -156,12 +156,16 @@ const ProfessionalAuth = () => {
 
         <Card className="border-2">
           <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mb-4">
-              <UserPlus className="h-8 w-8 text-secondary" />
+            <div className="mx-auto mb-4">
+              <img 
+                src="/lovable-uploads/f21911e1-af93-4bce-9178-049ecf77fa16.png" 
+                alt="Lasmar Telemed" 
+                className="h-16 w-auto mx-auto"
+              />
             </div>
             <CardTitle className="text-2xl">Profissional da Saúde</CardTitle>
             <CardDescription>
-              Faça login ou cadastre-se para acompanhar seu processo seletivo
+              Faça login ou cadastre-se na plataforma Lasmar Telemed
             </CardDescription>
           </CardHeader>
           <CardContent>

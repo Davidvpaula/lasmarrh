@@ -92,12 +92,16 @@ const AdminAuth = () => {
 
         <Card className="border-2">
           <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <Shield className="h-8 w-8 text-primary" />
+            <div className="mx-auto mb-4">
+              <img 
+                src="/lovable-uploads/f21911e1-af93-4bce-9178-049ecf77fa16.png" 
+                alt="Lasmar Telemed" 
+                className="h-16 w-auto mx-auto"
+              />
             </div>
             <CardTitle className="text-2xl">Login Administrativo</CardTitle>
             <CardDescription>
-              Acesso restrito para administradores do sistema
+              Acesso restrito para administradores da Lasmar Telemed
             </CardDescription>
           </CardHeader>
           <CardContent>
