@@ -185,14 +185,36 @@ export default function Forms() {
                     <div>
                       <h4 className="font-semibold mb-3">Informações Pessoais</h4>
                       <div className="grid grid-cols-2 gap-4 text-sm">
-                        {Object.entries(form.form_data).map(([field, value]) => (
-                          <div key={field}>
-                            <span className="font-medium text-muted-foreground">
-                              {field}:
-                            </span>
-                            <p>{String(value)}</p>
+                        {form.form_data?.form && Object.entries(form.form_data.form).map(([field, value]) => {
+                          const fieldLabels: { [key: string]: string } = {
+                            full_name: 'Nome Completo',
+                            cpf: 'CPF',
+                            rg: 'RG',
+                            birth_date: 'Data de Nascimento',
+                            phone: 'Telefone',
+                            address: 'Endereço',
+                            crm_number: 'Número do CRM',
+                            specialty: 'Especialidade',
+                            graduation_year: 'Ano de Formatura',
+                            institution: 'Instituição de Ensino'
+                          };
+                          
+                          return (
+                            <div key={field}>
+                              <span className="font-medium text-muted-foreground">
+                                {fieldLabels[field] || field}:
+                              </span>
+                              <p className="text-foreground">{String(value || 'Não informado')}</p>
+                            </div>
+                          );
+                        })}
+                        
+                        {form.form_data?.uploadedDocs && (
+                          <div className="col-span-2">
+                            <span className="font-medium text-muted-foreground">Documentos Enviados:</span>
+                            <p className="text-foreground">{form.form_data.uploadedDocs.join(', ')}</p>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
 
@@ -201,22 +223,38 @@ export default function Forms() {
                       <div>
                         <h4 className="font-semibold mb-3">Documentos Anexados</h4>
                         <div className="space-y-2">
-                          {form.documents.map((doc) => (
-                            <div key={doc.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">{doc.file_name}</p>
-                                <p className="text-xs text-muted-foreground">{doc.document_type}</p>
+                           {form.documents.map((doc) => {
+                            const docTypeLabels: { [key: string]: string } = {
+                              rg: 'RG (Frente e Verso)',
+                              cpf: 'CPF',
+                              crm: 'CRM',
+                              diploma: 'Diploma de Medicina',
+                              residencia: 'Certificado de Residência',
+                              curriculum: 'Currículo Atualizado'
+                            };
+                            
+                            return (
+                              <div key={doc.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{docTypeLabels[doc.document_type] || doc.document_type}</p>
+                                  <p className="text-xs text-muted-foreground">{doc.file_name}</p>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    toast({
+                                      title: "Documento",
+                                      description: `Visualizando ${docTypeLabels[doc.document_type] || doc.document_type}`,
+                                    });
+                                  }}
+                                >
+                                  Ver
+                                </Button>
                               </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => window.open(doc.file_path, '_blank')}
-                              >
-                                Ver
-                              </Button>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -249,28 +287,346 @@ export default function Forms() {
           )}
         </TabsContent>
 
-        <TabsContent value="pending">
-          {forms.filter(f => f.status === 'pending').map((form) => (
-            <Card key={form.application_id} className="hover:shadow-md transition-shadow">
-              {/* Mesmo conteúdo do card acima */}
+        <TabsContent value="pending" className="space-y-4">
+          {forms.filter(f => f.status === 'pending' || f.status === 'in_progress').length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <FolderOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhum formulário pendente</p>
+              </CardContent>
             </Card>
-          ))}
+          ) : (
+            forms.filter(f => f.status === 'pending' || f.status === 'in_progress').map((form) => (
+              <Card key={form.application_id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                      <CardTitle className="text-lg">{form.doctor_name}</CardTitle>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">Pendente</Badge>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(form.submitted_at).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Dados do formulário */}
+                    <div>
+                      <h4 className="font-semibold mb-3">Informações Pessoais</h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        {form.form_data?.form && Object.entries(form.form_data.form).map(([field, value]) => {
+                          const fieldLabels: { [key: string]: string } = {
+                            full_name: 'Nome Completo',
+                            cpf: 'CPF',
+                            rg: 'RG',
+                            birth_date: 'Data de Nascimento',
+                            phone: 'Telefone',
+                            address: 'Endereço',
+                            crm_number: 'Número do CRM',
+                            specialty: 'Especialidade',
+                            graduation_year: 'Ano de Formatura',
+                            institution: 'Instituição de Ensino'
+                          };
+                          
+                          return (
+                            <div key={field}>
+                              <span className="font-medium text-muted-foreground">
+                                {fieldLabels[field] || field}:
+                              </span>
+                              <p className="text-foreground">{String(value || 'Não informado')}</p>
+                            </div>
+                          );
+                        })}
+                        
+                        {form.form_data?.uploadedDocs && (
+                          <div className="col-span-2">
+                            <span className="font-medium text-muted-foreground">Documentos Enviados:</span>
+                            <p className="text-foreground">{form.form_data.uploadedDocs.join(', ')}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Documentos anexados */}
+                    {form.documents.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-3">Documentos Anexados</h4>
+                        <div className="space-y-2">
+                          {form.documents.map((doc) => {
+                            const docTypeLabels: { [key: string]: string } = {
+                              rg: 'RG (Frente e Verso)',
+                              cpf: 'CPF',
+                              crm: 'CRM',
+                              diploma: 'Diploma de Medicina',
+                              residencia: 'Certificado de Residência',
+                              curriculum: 'Currículo Atualizado'
+                            };
+                            
+                            return (
+                              <div key={doc.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{docTypeLabels[doc.document_type] || doc.document_type}</p>
+                                  <p className="text-xs text-muted-foreground">{doc.file_name}</p>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    toast({
+                                      title: "Documento",
+                                      description: `Visualizando ${docTypeLabels[doc.document_type] || doc.document_type}`,
+                                    });
+                                  }}
+                                >
+                                  Ver
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2 mt-6 pt-4 border-t">
+                    <Button
+                      onClick={() => handleStatusUpdate(form.application_id, 'approved')}
+                      className="flex items-center gap-2"
+                      size="sm"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Aprovar
+                    </Button>
+                    <Button
+                      onClick={() => handleStatusUpdate(form.application_id, 'rejected')}
+                      variant="destructive"
+                      className="flex items-center gap-2"
+                      size="sm"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Rejeitar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </TabsContent>
 
-        <TabsContent value="approved">
-          {forms.filter(f => f.status === 'approved').map((form) => (
-            <Card key={form.application_id} className="hover:shadow-md transition-shadow">
-              {/* Mesmo conteúdo do card acima */}
+        <TabsContent value="approved" className="space-y-4">
+          {forms.filter(f => f.status === 'approved').length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <CheckCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhum formulário aprovado</p>
+              </CardContent>
             </Card>
-          ))}
+          ) : (
+            forms.filter(f => f.status === 'approved').map((form) => (
+              <Card key={form.application_id} className="hover:shadow-md transition-shadow border-success">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                      <CardTitle className="text-lg">{form.doctor_name}</CardTitle>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="default">Aprovado</Badge>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(form.submitted_at).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Dados do formulário */}
+                    <div>
+                      <h4 className="font-semibold mb-3">Informações Pessoais</h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        {form.form_data?.form && Object.entries(form.form_data.form).map(([field, value]) => {
+                          const fieldLabels: { [key: string]: string } = {
+                            full_name: 'Nome Completo',
+                            cpf: 'CPF',
+                            rg: 'RG',
+                            birth_date: 'Data de Nascimento',
+                            phone: 'Telefone',
+                            address: 'Endereço',
+                            crm_number: 'Número do CRM',
+                            specialty: 'Especialidade',
+                            graduation_year: 'Ano de Formatura',
+                            institution: 'Instituição de Ensino'
+                          };
+                          
+                          return (
+                            <div key={field}>
+                              <span className="font-medium text-muted-foreground">
+                                {fieldLabels[field] || field}:
+                              </span>
+                              <p className="text-foreground">{String(value || 'Não informado')}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Documentos anexados */}
+                    {form.documents.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-3">Documentos Anexados</h4>
+                        <div className="space-y-2">
+                          {form.documents.map((doc) => {
+                            const docTypeLabels: { [key: string]: string } = {
+                              rg: 'RG (Frente e Verso)',
+                              cpf: 'CPF',
+                              crm: 'CRM',
+                              diploma: 'Diploma de Medicina',
+                              residencia: 'Certificado de Residência',
+                              curriculum: 'Currículo Atualizado'
+                            };
+                            
+                            return (
+                              <div key={doc.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{docTypeLabels[doc.document_type] || doc.document_type}</p>
+                                  <p className="text-xs text-muted-foreground">{doc.file_name}</p>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    toast({
+                                      title: "Documento",
+                                      description: `Visualizando ${docTypeLabels[doc.document_type] || doc.document_type}`,
+                                    });
+                                  }}
+                                >
+                                  Ver
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </TabsContent>
 
-        <TabsContent value="rejected">
-          {forms.filter(f => f.status === 'rejected').map((form) => (
-            <Card key={form.application_id} className="hover:shadow-md transition-shadow">
-              {/* Mesmo conteúdo do card acima */}
+        <TabsContent value="rejected" className="space-y-4">
+          {forms.filter(f => f.status === 'rejected').length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <XCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhum formulário rejeitado</p>
+              </CardContent>
             </Card>
-          ))}
+          ) : (
+            forms.filter(f => f.status === 'rejected').map((form) => (
+              <Card key={form.application_id} className="hover:shadow-md transition-shadow border-destructive">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                      <CardTitle className="text-lg">{form.doctor_name}</CardTitle>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="destructive">Rejeitado</Badge>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(form.submitted_at).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Dados do formulário */}
+                    <div>
+                      <h4 className="font-semibold mb-3">Informações Pessoais</h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        {form.form_data?.form && Object.entries(form.form_data.form).map(([field, value]) => {
+                          const fieldLabels: { [key: string]: string } = {
+                            full_name: 'Nome Completo',
+                            cpf: 'CPF',
+                            rg: 'RG',
+                            birth_date: 'Data de Nascimento',
+                            phone: 'Telefone',
+                            address: 'Endereço',
+                            crm_number: 'Número do CRM',
+                            specialty: 'Especialidade',
+                            graduation_year: 'Ano de Formatura',
+                            institution: 'Instituição de Ensino'
+                          };
+                          
+                          return (
+                            <div key={field}>
+                              <span className="font-medium text-muted-foreground">
+                                {fieldLabels[field] || field}:
+                              </span>
+                              <p className="text-foreground">{String(value || 'Não informado')}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Documentos anexados */}
+                    {form.documents.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold mb-3">Documentos Anexados</h4>
+                        <div className="space-y-2">
+                          {form.documents.map((doc) => {
+                            const docTypeLabels: { [key: string]: string } = {
+                              rg: 'RG (Frente e Verso)',
+                              cpf: 'CPF',
+                              crm: 'CRM',
+                              diploma: 'Diploma de Medicina',
+                              residencia: 'Certificado de Residência',
+                              curriculum: 'Currículo Atualizado'
+                            };
+                            
+                            return (
+                              <div key={doc.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{docTypeLabels[doc.document_type] || doc.document_type}</p>
+                                  <p className="text-xs text-muted-foreground">{doc.file_name}</p>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    toast({
+                                      title: "Documento",
+                                      description: `Visualizando ${docTypeLabels[doc.document_type] || doc.document_type}`,
+                                    });
+                                  }}
+                                >
+                                  Ver
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </TabsContent>
       </Tabs>
     </div>
