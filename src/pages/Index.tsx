@@ -286,14 +286,14 @@ const Index = () => {
                       <div className="text-sm">Vendedor disponível até 22h (triagem automática)</div>
                     </div>
                     <div className="bg-secondary/10 p-4 rounded-lg">
-                      <div className="font-bold text-secondary text-xl mb-2">R$ 100,00</div>
+                      <div className="font-bold text-secondary text-xl mb-2">R$ XX,XX</div>
                       <div className="text-sm">Prontuário eletrônico fechado (com backup)</div>
                     </div>
                   </div>
                   
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="bg-warning/10 p-4 rounded-lg">
-                      <div className="font-bold text-warning text-xl mb-2">R$ 300,00</div>
+                      <div className="font-bold text-warning text-xl mb-2">R$ XX,XX</div>
                       <div className="text-sm">Suporte de TI para anúncios no seu perfil</div>
                     </div>
                     <div className="bg-green-500/10 p-4 rounded-lg">
