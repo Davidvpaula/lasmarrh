@@ -194,7 +194,7 @@ const Index = () => {
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
                     <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
-                    <span className="text-sm sm:text-base"><strong>Dedução por consulta: X%</strong></span>
+                    <span className="text-sm sm:text-base"><strong>Dedução por consulta: XX%</strong></span>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3">
                     <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
