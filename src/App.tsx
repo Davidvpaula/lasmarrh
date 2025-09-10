@@ -25,9 +25,10 @@ import { Toaster } from '@/components/ui/toaster';
 import './App.css';
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, loading, profile } = useAuth();
   const isAuthenticated = !!user;
-  const isAuthPage = window.location.pathname === '/auth' || window.location.pathname === '/admin/auth' || window.location.pathname === '/professional/auth' || window.location.pathname === '/';
+  const currentPath = window.location.pathname;
+  const isAuthPage = currentPath === '/auth' || currentPath === '/admin/auth' || currentPath === '/professional/auth' || currentPath === '/';
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;

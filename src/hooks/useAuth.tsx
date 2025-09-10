@@ -89,6 +89,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           description: error.message,
           variant: "destructive",
         });
+        return { data, error };
+      }
+
+      // If login successful, fetch profile immediately
+      if (data?.user) {
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', data.user.id)
+            .single();
+          
+          if (!profileError && profileData) {
+            setProfile(profileData);
+          }
+        } catch (profileFetchError) {
+          console.error('Error fetching profile after login:', profileFetchError);
+        }
       }
       
       return { data, error };
