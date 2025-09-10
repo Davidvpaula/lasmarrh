@@ -66,6 +66,18 @@ export default function Interviews() {
 
   const handleStatusUpdate = async (applicationId: string, newStatus: 'approved' | 'rejected') => {
     try {
+      // Buscar o status atual da entrevista
+      const { data: currentData, error: fetchError } = await supabase
+        .from('stage_progress')
+        .select('status')
+        .eq('application_id', applicationId)
+        .eq('stage_number', 2)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const wasApproved = currentData?.status === 'approved';
+
       // Atualizar status do stage 2 (Entrevista)
       const { error: stageError } = await supabase
         .from('stage_progress')
@@ -96,11 +108,28 @@ export default function Interviews() {
           .eq('id', applicationId);
 
         if (appError) throw appError;
+      } else if (newStatus === 'rejected' && wasApproved) {
+        // Se estava aprovado e agora foi rejeitado, bloquear acesso aos próximos stages
+        const { error: lockError } = await supabase
+          .from('stage_progress')
+          .update({ status: 'locked' })
+          .eq('application_id', applicationId)
+          .in('stage_number', [3, 4, 5, 6]); // Bloquear Training, Documents, Interview Final, Final
+
+        if (lockError) throw lockError;
+
+        // Voltar stage atual da aplicação para 2
+        const { error: appError } = await supabase
+          .from('applications')
+          .update({ current_stage: 2 })
+          .eq('id', applicationId);
+
+        if (appError) throw appError;
       }
 
       toast({
         title: "Sucesso",
-        description: `Entrevista ${newStatus === 'approved' ? 'aprovada' : 'rejeitada'} com sucesso.${newStatus === 'approved' ? ' Acesso liberado para Treinamento e Documentos.' : ''}`,
+        description: `Entrevista ${newStatus === 'approved' ? 'aprovada' : 'rejeitada'} com sucesso.${newStatus === 'approved' ? ' Acesso liberado para Treinamento e Documentos.' : wasApproved ? ' Acesso aos próximos stages foi removido.' : ''}`,
       });
 
       fetchInterviews();
@@ -165,16 +194,18 @@ export default function Interviews() {
           ))}
         </div>
         
-        {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress') && (
+        {((interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress') || interview.status === 'approved') && (
           <div className="flex gap-2 mt-6 pt-4 border-t">
-            <Button
-              onClick={() => handleStatusUpdate(interview.application_id, 'approved')}
-              className="flex items-center gap-2"
-              size="sm"
-            >
-              <CheckCircle className="h-4 w-4" />
-              Aprovar
-            </Button>
+            {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress') && (
+              <Button
+                onClick={() => handleStatusUpdate(interview.application_id, 'approved')}
+                className="flex items-center gap-2"
+                size="sm"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Aprovar
+              </Button>
+            )}
             <Button
               onClick={() => handleStatusUpdate(interview.application_id, 'rejected')}
               variant="destructive"
