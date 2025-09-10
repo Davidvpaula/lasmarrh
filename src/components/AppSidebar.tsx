@@ -31,7 +31,7 @@ import { toast } from "@/hooks/use-toast"
 
 export function AppSidebar() {
   const { state } = useSidebar()
-  const { profile } = useAuth()
+  const { profile, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const currentPath = location.pathname
@@ -107,8 +107,18 @@ export function AppSidebar() {
 
   const items = isAdminContext ? adminItems : doctorItems
 
-  const handleSignOut = () => {
-    window.location.href = '/';
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao fazer logout. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
