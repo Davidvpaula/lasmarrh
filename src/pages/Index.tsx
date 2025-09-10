@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import doctorTeleconsult1 from '@/assets/doctor-teleconsult-1.jpg';
 import doctorTeleconsult2 from '@/assets/doctor-teleconsult-2.jpg';
 import medicalTeamTelemed from '@/assets/medical-team-telemed.jpg';
+import medicalEntrepreneur from '@/assets/medical-entrepreneur.jpg';
 
 const Index = () => {
   const { user, profile } = useAuth();
@@ -217,6 +218,49 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Faixa 5 - Nosso Modelo */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="relative">
+                <img 
+                  src={medicalEntrepreneur} 
+                  alt="Empreendedorismo médico e telemedicina" 
+                  className="w-full h-80 object-cover rounded-2xl shadow-xl"
+                />
+              </div>
+              
+              <div className="space-y-6">
+                <div className="text-lg leading-relaxed text-muted-foreground space-y-4">
+                  <p>
+                    Na Lasmar Telemed, entendemos os desafios de entrar no mercado digital e sabemos que muitos profissionais precisam de apoio para se posicionar. Pensando nisso, criamos um espaço funcional, acessível e de baixo custo, que oferece todas as ferramentas para quem deseja crescer no universo da teleconsulta.
+                  </p>
+                  <p>
+                    Nosso modelo é baseado em <strong className="text-primary">empreendedorismo médico</strong>: trabalhamos com grupos reduzidos de profissionais e especialidades específicas, garantindo foco no que realmente importa.
+                  </p>
+                  
+                  <div className="space-y-3 mt-6">
+                    <div className="flex items-start gap-3">
+                      <ArrowRight className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span>Aqui, você tem liberdade para escolher os serviços que deseja utilizar.</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <ArrowRight className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span>Trabalhar conosco é gratuito: não cobramos mensalidades, apenas uma taxa sobre cada consulta realizada.</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <ArrowRight className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span>Você recebe todo o suporte de captação de pacientes, gestão e presença digital.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
