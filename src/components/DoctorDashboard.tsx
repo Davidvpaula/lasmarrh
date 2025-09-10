@@ -4,6 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, Clock, Lock, FileText, Play, Award, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface StageProgress {
   stage_number: number;
@@ -28,43 +31,64 @@ const STAGES = [
   { id: 6, title: 'Treinamentos Adicionais', description: 'Cursos complementares (opcional)', icon: Play, optional: true },
 ];
 
-// Simulando dados de profissional para desenvolvimento
-const mockProfile = {
-  user_id: 'mock-user-123',
-  full_name: 'Dr. João Silva',
-  email: 'joao.silva@email.com',
-  role: 'doctor'
-};
-
 const DoctorDashboard = () => {
+  const { user, profile, signOut } = useAuth();
   const [application, setApplication] = useState<Application | null>(null);
   const [stageProgress, setStageProgress] = useState<StageProgress[]>([]);
-  const [loading, setLoading] = useState(false); // Desabilitado para desenvolvimento
-
-  // Mock data para desenvolvimento
-  const mockApplication = {
-    id: 'app-123',
-    status: 'active',
-    current_stage: 2
-  };
-
-  const mockStageProgress = [
-    { stage_number: 1, status: 'completed', completed_at: '2024-01-15T10:00:00Z', notes: 'Cadastro realizado com sucesso' },
-    { stage_number: 2, status: 'in_progress', started_at: '2024-01-20T09:00:00Z', notes: 'Aguardando agendamento da entrevista' },
-    { stage_number: 3, status: 'locked', notes: null },
-    { stage_number: 4, status: 'locked', notes: null },
-    { stage_number: 5, status: 'locked', notes: null },
-    { stage_number: 6, status: 'locked', notes: null },
-  ];
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulando carregamento de dados para desenvolvimento
-    setApplication(mockApplication);
-    setStageProgress(mockStageProgress);
-  }, []);
+    if (user && profile) {
+      fetchApplicationData();
+    }
+  }, [user, profile]);
 
-  const handleSignOut = () => {
-    window.location.href = '/';
+  const fetchApplicationData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      
+      // Buscar application do usuário
+      const { data: applicationData, error: appError } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('doctor_id', user.id)
+        .single();
+
+      if (appError && appError.code !== 'PGRST116') {
+        throw appError;
+      }
+
+      // Buscar progresso das etapas
+      if (applicationData) {
+        const { data: progressData, error: progressError } = await supabase
+          .from('stage_progress')
+          .select('*')
+          .eq('application_id', applicationData.id)
+          .order('stage_number');
+
+        if (progressError) {
+          throw progressError;
+        }
+
+        setApplication(applicationData);
+        setStageProgress(progressData || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar dados do dashboard.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   const getStageStatus = (stageNumber: number) => {
@@ -133,7 +157,7 @@ const DoctorDashboard = () => {
                 <span className="text-xs text-primary">Em Processo</span>
               </div>
               <span className="text-sm text-muted-foreground">
-                Olá, {mockProfile?.full_name}
+                Olá, {profile?.full_name || user?.email}
               </span>
               <Button variant="outline" size="sm" onClick={handleSignOut} className="hover-scale">
                 <LogOut className="h-4 w-4 mr-2" />

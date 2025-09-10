@@ -13,6 +13,7 @@ import { Users, FileText, Play, Settings, LogOut, Eye, CheckCircle, XCircle, Use
 import TrainingManagementTab from './TrainingManagementTab';
 import UploadsManagementTab from './UploadsManagementTab';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DoctorApplication {
   id: string;
@@ -42,18 +43,11 @@ interface AdminUser {
   created_at: string;
 }
 
-// Simulando dados de admin para desenvolvimento
-const mockProfile = {
-  user_id: 'mock-admin-123',
-  full_name: 'Administrador Comercial',
-  email: 'comercial@telemedlasmar.com',
-  role: 'admin'
-};
-
 const AdminDashboard = () => {
+  const { user, profile, signOut } = useAuth();
   const [applications, setApplications] = useState<DoctorApplication[]>([]);
   const [admins, setAdmins] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<DoctorApplication | null>(null);
   const [newAdminData, setNewAdminData] = useState({
     full_name: '',
@@ -61,64 +55,88 @@ const AdminDashboard = () => {
     password: ''
   });
 
-  // Mock data para desenvolvimento
-  const mockApplications = [
-    {
-      id: 'app-001',
-      doctor_id: 'doc-001', 
-      status: 'active',
-      current_stage: 2,
-      created_at: '2024-01-15T10:00:00Z',
-      profiles: {
-        full_name: 'Dr. Maria Santos',
-        email: 'maria.santos@email.com',
-        crm: 'CRM/SP 123456',
-        phone: '(11) 99999-9999'
-      },
-      stage_progress: [
-        { stage_number: 1, status: 'completed', completed_at: '2024-01-15T10:00:00Z', notes: 'Cadastro aprovado' },
-        { stage_number: 2, status: 'in_progress', completed_at: '', notes: 'Entrevista agendada' },
-        { stage_number: 3, status: 'locked', completed_at: '', notes: '' },
-      ]
-    },
-    {
-      id: 'app-002',
-      doctor_id: 'doc-002',
-      status: 'active', 
-      current_stage: 3,
-      created_at: '2024-01-10T09:00:00Z',
-      profiles: {
-        full_name: 'Dr. Carlos Oliveira',
-        email: 'carlos.oliveira@email.com',
-        crm: 'CRM/RJ 654321',
-        phone: '(21) 88888-8888'
-      },
-      stage_progress: [
-        { stage_number: 1, status: 'completed', completed_at: '2024-01-10T09:00:00Z', notes: 'Cadastro aprovado' },
-        { stage_number: 2, status: 'completed', completed_at: '2024-01-12T14:00:00Z', notes: 'Entrevista aprovada' },
-        { stage_number: 3, status: 'in_progress', completed_at: '', notes: 'Aguardando documentos' },
-      ]
-    }
-  ];
-
-  const mockAdmins = [
-    {
-      id: 'admin-001',
-      full_name: 'Administrador Comercial',
-      email: 'comercial@telemedlasmar.com',
-      role: 'admin',
-      created_at: '2024-01-01T00:00:00Z'
-    }
-  ];
-
   useEffect(() => {
-    // Simulando carregamento de dados para desenvolvimento
-    setApplications(mockApplications);
-    setAdmins(mockAdmins);
-  }, []);
+    if (user && profile?.role === 'admin') {
+      fetchAdminData();
+    }
+  }, [user, profile]);
 
-  const handleSignOut = () => {
-    window.location.href = '/';
+  const fetchAdminData = async () => {
+    try {
+      setLoading(true);
+      
+      // Buscar todas as applications com dados do doctor
+      const { data: applicationData, error: appError } = await supabase
+        .from('applications')
+        .select(`
+          *,
+          profiles!applications_doctor_id_fkey (
+            full_name,
+            email,
+            crm,
+            phone
+          ),
+          stage_progress (
+            stage_number,
+            status,
+            started_at,
+            completed_at,
+            notes
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (appError) throw appError;
+
+      // Transformar dados para o formato esperado
+      const transformedApplications: DoctorApplication[] = applicationData?.map(app => ({
+        id: app.id,
+        doctor_id: app.doctor_id,
+        status: app.status,
+        current_stage: app.current_stage,
+        created_at: app.created_at,
+        profiles: {
+          full_name: app.profiles?.full_name || 'Nome não informado',
+          email: app.profiles?.email || 'Email não informado',
+          crm: app.profiles?.crm || '',
+          phone: app.profiles?.phone || ''
+        },
+        stage_progress: app.stage_progress || []
+      })) || [];
+
+      // Buscar admins
+      const { data: adminData, error: adminError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'admin')
+        .order('created_at', { ascending: false });
+
+      if (adminError) throw adminError;
+
+      const transformedAdmins: AdminUser[] = adminData?.map(admin => ({
+        id: admin.id,
+        full_name: admin.full_name,
+        email: admin.email,
+        role: admin.role,
+        created_at: admin.created_at
+      })) || [];
+
+      setApplications(transformedApplications);
+      setAdmins(transformedAdmins);
+    } catch (error) {
+      console.error('Erro ao carregar dados admin:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar dados do dashboard administrativo.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   const updateStageStatus = async (applicationId: string, stageNumber: number, status: string, notes: string = '') => {
@@ -132,7 +150,7 @@ const AdminDashboard = () => {
           status: status as 'completed' | 'in_progress' | 'locked' | 'rejected' | 'available' | 'approved',
           completed_at: status === 'approved' ? new Date().toISOString() : null,
           notes: notes,
-          approved_by: status === 'approved' ? mockProfile.user_id : null
+          approved_by: status === 'approved' ? user?.id : null
         })
         .eq('application_id', applicationId)
         .eq('stage_number', stageNumber);
@@ -157,23 +175,9 @@ const AdminDashboard = () => {
         description: status === 'approved' ? "O candidato pode prosseguir para a próxima etapa." : "Status da etapa foi atualizado.",
       });
 
-      // Refresh the applications list
-      setApplications(mockApplications.map(app => 
-        app.id === applicationId 
-          ? { 
-              ...app, 
-              current_stage: status === 'approved' && stageNumber === 2 ? 3 : app.current_stage,
-              stage_progress: app.stage_progress.map(stage => 
-                stage.stage_number === stageNumber 
-                  ? { ...stage, status: status, completed_at: status === 'approved' ? new Date().toISOString() : stage.completed_at, notes: notes }
-                  : stage.stage_number === 3 && status === 'approved' && stageNumber === 2
-                    ? { ...stage, status: 'available' }
-                    : stage
-              )
-            }
-          : app
-      ));
-
+      // Recarregar dados
+      await fetchAdminData();
+      
     } catch (error) {
       console.error('Error updating stage status:', error);
       toast({
@@ -187,11 +191,45 @@ const AdminDashboard = () => {
   };
 
   const createAdmin = async () => {
-    toast({
-      title: "Admin criado (DEMO)",
-      description: "Em desenvolvimento - mudanças não são persistidas.",
-    });
-    setNewAdminData({ full_name: '', email: '', password: '' });
+    if (!newAdminData.full_name || !newAdminData.email || !newAdminData.password) {
+      toast({
+        title: "Erro",
+        description: "Todos os campos são obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Criar usuário admin via Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newAdminData.email,
+        password: newAdminData.password,
+        options: {
+          data: {
+            full_name: newAdminData.full_name,
+            role: 'admin'
+          }
+        }
+      });
+
+      if (authError) throw authError;
+      
+      toast({
+        title: "Admin criado",
+        description: "Administrador criado com sucesso.",
+      });
+      
+      setNewAdminData({ full_name: '', email: '', password: '' });
+      await fetchAdminData(); // Recarregar lista
+    } catch (error: any) {
+      console.error('Erro ao criar admin:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar administrador.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStageStatusCount = (stageNumber: number) => {
@@ -251,7 +289,7 @@ const AdminDashboard = () => {
                 <span className="text-xs text-success-foreground">Sistema Online</span>
               </div>
               <span className="text-sm text-muted-foreground">
-                Olá, {mockProfile?.full_name}
+                Olá, {profile?.full_name || user?.email}
               </span>
               <Button variant="outline" size="sm" onClick={handleSignOut} className="hover-scale">
                 <LogOut className="h-4 w-4 mr-2" />
