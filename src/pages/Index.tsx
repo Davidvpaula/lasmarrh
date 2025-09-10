@@ -320,7 +320,7 @@ const Index = () => {
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-3 font-semibold text-sm">Secretaria</td>
                     <td className="p-3 text-center text-sm">Comunitária</td>
-                    <td className="p-3 text-center font-bold text-success text-sm">Exclusiva +<br/>Vendedor até 22h</td>
+                    <td className="p-3 text-center font-bold text-success text-sm">Exclusivo +<br/>Vendedor até 22h</td>
                   </tr>
                   <tr className="border-b hover:bg-gray-50">
                     <td className="p-3 font-semibold text-sm">Landing Page</td>
