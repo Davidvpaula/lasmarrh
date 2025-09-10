@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -16,8 +17,14 @@ import {
   Database,
   Save,
   RefreshCw,
-  UserPlus
+  UserPlus,
+  Monitor,
+  Activity
 } from 'lucide-react';
+import { SystemSettingsTab } from '@/components/SystemSettingsTab';
+import { ActiveSessionsTab } from '@/components/ActiveSessionsTab';
+import { AuditLogsTab } from '@/components/AuditLogsTab';
+import { BackupDataTab } from '@/components/BackupDataTab';
 
 const Settings = () => {
   const [settings, setSettings] = useState({
