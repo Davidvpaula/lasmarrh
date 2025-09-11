@@ -382,6 +382,57 @@ const Training = () => {
             })}
           </div>
 
+          {/* Completion Button - appears when all videos are completed */}
+          {videos.length > 0 && videos.every(v => isVideoCompleted(v.id)) && (
+            <Card className="border-success bg-gradient-to-r from-success/10 to-success/5">
+              <CardContent className="py-8">
+                <div className="text-center">
+                  <Award className="h-16 w-16 mx-auto mb-4 text-success" />
+                  <h3 className="text-2xl font-bold text-success mb-2">
+                    Parabéns! Todos os vídeos foram assistidos
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Você completou todos os vídeos de treinamento obrigatórios. 
+                    Clique no botão abaixo para finalizar seu treinamento.
+                  </p>
+                  <Button 
+                    onClick={async () => {
+                      try {
+                        await supabase
+                          .from('stage_progress')
+                          .update({
+                            status: 'completed',
+                            completed_at: new Date().toISOString()
+                          })
+                          .eq('application_id', applicationId)
+                          .eq('stage_number', 4);
+
+                        toast({
+                          title: "🎉 Treinamento Finalizado!",
+                          description: "Você concluiu com sucesso toda a capacitação obrigatória.",
+                        });
+                        
+                        setTimeout(() => navigate('/dashboard'), 2000);
+                      } catch (error) {
+                        console.error('Error completing training:', error);
+                        toast({
+                          title: "Erro",
+                          description: "Erro ao finalizar treinamento. Tente novamente.",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                    size="lg"
+                    className="bg-gradient-primary hover:bg-primary-hover text-white px-8 py-3"
+                  >
+                    <Award className="h-5 w-5 mr-2" />
+                    Finalizar Treinamento
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {videos.length === 0 && (
             <Card>
               <CardContent className="py-8">

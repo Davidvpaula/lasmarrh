@@ -224,13 +224,13 @@ const ProfessionalTraining = () => {
       return prog?.completed_at || v.id === confirmingSignature;
     });
 
-    if (allCompleted) {
-      setStageStatus('completed');
-      toast({
-        title: "🎉 Treinamento Concluído!",
-        description: "Parabéns! Você assinou todos os vídeos obrigatórios e está qualificado!",
-      });
-    } else {
+      if (allCompleted) {
+        setStageStatus('completed');
+        toast({
+          title: "🎉 Todos os vídeos foram assistidos!",
+          description: "Clique no botão 'Finalizar Treinamento' para concluir sua capacitação.",
+        });
+      } else {
       toast({
         title: "✅ Vídeo Assinado!",
         description: `"${video.title}" foi assinado com sucesso. Treinamento validado!`,
@@ -415,18 +415,6 @@ const ProfessionalTraining = () => {
                               {isStarted ? "Continuar Assistindo" : "▶️ Assistir Vídeo"}
                             </Button>
                             
-                            {/* Botão YouTube Externo */}
-                            <a 
-                              href={video.video_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                            >
-                              <Button variant="secondary" className="flex-shrink-0">
-                                <Youtube className="h-4 w-4 mr-2" />
-                                Abrir no YouTube
-                              </Button>
-                            </a>
-                            
                             {/* Botão Assinar com Dialog de Confirmação */}
                             <Dialog open={confirmingSignature === video.id} onOpenChange={(open) => !open && setConfirmingSignature(null)}>
                               <DialogTrigger asChild>
@@ -512,6 +500,38 @@ const ProfessionalTraining = () => {
               );
             })}
           </div>
+
+          {/* Completion Button - appears when all videos are completed */}
+          {videos.length > 0 && videos.every(v => isVideoCompleted(v.id)) && stageStatus !== 'completed' && (
+            <Card className="border-success bg-gradient-to-r from-success/10 to-success/5">
+              <CardContent className="py-8">
+                <div className="text-center">
+                  <Award className="h-16 w-16 mx-auto mb-4 text-success" />
+                  <h3 className="text-2xl font-bold text-success mb-2">
+                    Parabéns! Todos os vídeos foram assistidos
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Você completou todos os vídeos de treinamento obrigatórios. 
+                    Clique no botão abaixo para finalizar seu treinamento.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setStageStatus('completed');
+                      toast({
+                        title: "🎉 Treinamento Finalizado!",
+                        description: "Você concluiu com sucesso toda a capacitação obrigatória.",
+                      });
+                    }}
+                    size="lg"
+                    className="bg-gradient-primary hover:bg-primary-hover text-white px-8 py-3"
+                  >
+                    <Award className="h-5 w-5 mr-2" />
+                    Finalizar Treinamento
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {videos.length === 0 && (
             <Card>
