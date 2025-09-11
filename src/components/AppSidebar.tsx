@@ -12,7 +12,8 @@ import {
   Upload,
   MessageSquare,
   FolderOpen,
-  Play
+  Play,
+  Wrench
 } from "lucide-react"
 import {
   Sidebar,
@@ -95,6 +96,7 @@ export function AppSidebar() {
     { title: "Entrevista", url: "/interview", icon: Calendar },
     { title: "Documentos", url: "/documents", icon: FileText },
     { title: "Treinamento", url: "/training/professional", icon: GraduationCap },
+    { title: "Ferramentas de trabalho", url: "/work-tools", icon: Wrench },
     { title: "Meu Perfil", url: "/profile", icon: User },
   ]
 

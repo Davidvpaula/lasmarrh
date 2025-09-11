@@ -11,6 +11,7 @@ import Interview from './pages/Interview';
 import Documents from './pages/Documents';
 import Training from './pages/Training';
 import ProfessionalTraining from '@/components/ProfessionalTraining';
+import WorkTools from './pages/WorkTools';
 import Profile from './pages/Profile';
 import Applications from './pages/admin/Applications';
 import Administrators from './pages/admin/Administrators';
@@ -87,6 +88,7 @@ function AppContent() {
             <Route path="/documents" element={<Documents />} />
             <Route path="/training" element={<ProfessionalTraining />} />
             <Route path="/training/professional" element={<ProfessionalTraining />} />
+            <Route path="/work-tools" element={<WorkTools />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin/applications" element={<Applications />} />
             <Route path="/admin/interviews" element={<Interviews />} />
