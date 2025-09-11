@@ -149,7 +149,7 @@ const DoctorDashboard = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center animate-fade-in">
               <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">RH Pulse</h1>
-              <span className="ml-4 text-sm text-muted-foreground">Painel do Candidato</span>
+              <span className="ml-4 text-sm text-muted-foreground">Lasmar Telemed - Area do Profissional</span>
             </div>
             <div className="flex items-center gap-4 animate-fade-in">
               <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
