@@ -81,7 +81,7 @@ function AppContent() {
         {/* Mobile Header */}
         <header className="lg:hidden bg-background border-b border-border px-4 py-3 flex items-center justify-between sticky top-0 z-50">
           <img 
-            src="/lovable-uploads/d5aad3a5-0ecf-4dff-9318-6aa4da6a4180.png" 
+            src="/lovable-uploads/2336be0c-c6ff-4907-8e1e-6b26e1176660.png" 
             alt="Lasmar Telemed" 
             className="h-8 w-auto"
           />

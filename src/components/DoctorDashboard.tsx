@@ -148,7 +148,7 @@ const DoctorDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center animate-fade-in">
-              <img src="/lovable-uploads/d5aad3a5-0ecf-4dff-9318-6aa4da6a4180.png" alt="Logo da Empresa" className="h-8" />
+              <img src="/lovable-uploads/2336be0c-c6ff-4907-8e1e-6b26e1176660.png" alt="Logo da Empresa" className="h-8" />
               <span className="ml-4 text-sm text-muted-foreground">Lasmar Telemed - Area do Profissional</span>
             </div>
             <div className="flex items-center gap-4 animate-fade-in">
