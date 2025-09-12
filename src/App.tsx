@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import Index from './pages/Index';
 import AdminAuth from './pages/AdminAuth';
@@ -77,30 +77,42 @@ function AppContent() {
   // Protected routes with sidebar
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <main className="flex-1 overflow-hidden">
-          <Routes>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/professional" element={<DoctorDashboard />} />
-            <Route path="/dashboard/admin" element={<AdminDashboard />} />
-            <Route path="/interview" element={<Interview />} />
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/training" element={<ProfessionalTraining />} />
-            <Route path="/training/professional" element={<ProfessionalTraining />} />
-            <Route path="/work-tools" element={<WorkTools />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/admin/applications" element={<Applications />} />
-            <Route path="/admin/interviews" element={<Interviews />} />
-            <Route path="/admin/forms" element={<Forms />} />
-            <Route path="/admin/training" element={<AdminTraining />} />
-            <Route path="/admin/administrators" element={<Administrators />} />
-            <Route path="/admin/uploads" element={<Uploads />} />
-            <Route path="/admin/settings" element={<Settings />} />
-            <Route path="/admin/system-tester" element={<SystemTesterPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
+      <div className="min-h-screen flex flex-col w-full">
+        {/* Mobile Header */}
+        <header className="lg:hidden bg-background border-b border-border px-4 py-3 flex items-center justify-between sticky top-0 z-50">
+          <img 
+            src="/lovable-uploads/d5aad3a5-0ecf-4dff-9318-6aa4da6a4180.png" 
+            alt="Lasmar Telemed" 
+            className="h-8 w-auto"
+          />
+          <SidebarTrigger className="p-2 hover:bg-muted rounded-md" />
+        </header>
+
+        <div className="flex flex-1 w-full">
+          <AppSidebar />
+          <main className="flex-1 overflow-hidden">
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/professional" element={<DoctorDashboard />} />
+              <Route path="/dashboard/admin" element={<AdminDashboard />} />
+              <Route path="/interview" element={<Interview />} />
+              <Route path="/documents" element={<Documents />} />
+              <Route path="/training" element={<ProfessionalTraining />} />
+              <Route path="/training/professional" element={<ProfessionalTraining />} />
+              <Route path="/work-tools" element={<WorkTools />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/admin/applications" element={<Applications />} />
+              <Route path="/admin/interviews" element={<Interviews />} />
+              <Route path="/admin/forms" element={<Forms />} />
+              <Route path="/admin/training" element={<AdminTraining />} />
+              <Route path="/admin/administrators" element={<Administrators />} />
+              <Route path="/admin/uploads" element={<Uploads />} />
+              <Route path="/admin/settings" element={<Settings />} />
+              <Route path="/admin/system-tester" element={<SystemTesterPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );
