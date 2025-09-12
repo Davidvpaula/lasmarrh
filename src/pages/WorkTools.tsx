@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Wrench } from 'lucide-react';
+import { Link } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -75,7 +75,7 @@ const WorkTools = () => {
         <Card className="max-w-md w-full text-center">
           <CardHeader>
             <div className="mx-auto w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mb-4">
-              <Wrench className="h-8 w-8 text-warning" />
+              <Link className="h-8 w-8 text-warning" />
             </div>
             <CardTitle>Acesso Restrito</CardTitle>
             <CardDescription>
@@ -107,20 +107,22 @@ const WorkTools = () => {
         </div>
 
         {/* Work Tools */}
-        <Card className="shadow-lg border-0 bg-gradient-to-r from-accent/5 via-background to-secondary/5 animate-fade-in">
-          <CardHeader className="pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center shadow-lg">
-                <Wrench className="h-6 w-6 text-white" />
-              </div>
-              <div className="text-center sm:text-left">
-                <CardTitle className="text-xl sm:text-2xl">Plataformas Integradas</CardTitle>
-                <CardDescription className="text-sm sm:text-base">
-                  Ferramentas essenciais para comunicação, prontuários e agenda
-                </CardDescription>
-              </div>
+        <div className="space-y-6 animate-fade-in">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+              <Link className="h-7 w-7 text-white" />
             </div>
-          </CardHeader>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-semibold mb-2">Plataformas Integradas</h2>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                Ferramentas essenciais para comunicação, prontuários e agenda
+              </p>
+            </div>
+          </div>
+          
+          <Card className="shadow-lg border-0 bg-card">
+            <CardHeader className="pb-4">
+            </CardHeader>
           <CardContent className="p-4 sm:p-6">
             <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
               {/* SacMais */}
@@ -189,6 +191,7 @@ const WorkTools = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
