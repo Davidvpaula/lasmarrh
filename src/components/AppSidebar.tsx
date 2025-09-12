@@ -132,7 +132,6 @@ export function AppSidebar() {
       className={`${collapsed ? "w-14" : "w-64"} hidden lg:flex transition-all duration-300`}
       collapsible="icon"
     >
-      <SidebarTrigger className="hidden lg:block m-2 self-end" />
 
       <SidebarContent>
         <SidebarGroup>
