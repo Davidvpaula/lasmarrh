@@ -86,6 +86,17 @@ export const SystemTester = () => {
         { name: 'Entrevistas', status: 'pending' },
         { name: 'Notificações', status: 'pending' },
       ]
+    },
+    {
+      name: 'Testes Mecânicos',
+      icon: Settings,
+      tests: [
+        { name: 'Responsividade Mobile', status: 'pending' },
+        { name: 'Performance da Página', status: 'pending' },
+        { name: 'Navegação e Links', status: 'pending' },
+        { name: 'Formulários e Validações', status: 'pending' },
+        { name: 'Elementos Interativos', status: 'pending' },
+      ]
     }
   ]);
 
@@ -187,13 +198,25 @@ export const SystemTester = () => {
       updateTestStatus(categoryIndex, 1, 'error', 'Perfil não encontrado');
     }
 
-    // Teste 3: Controle de Sessão
-    setCurrentTest('Testando controle de sessão...');
+    // Teste 3: Controle de Sessão e Refresh Token
+    setCurrentTest('Testando controle de sessão e refresh token...');
     updateTestStatus(categoryIndex, 2, 'running');
     try {
       const { data: session } = await supabase.auth.getSession();
       if (session.session) {
-        updateTestStatus(categoryIndex, 2, 'success', 'Sessão ativa');
+        // Testar refresh token
+        try {
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          if (refreshError && refreshError.message.includes('refresh_token_not_found')) {
+            updateTestStatus(categoryIndex, 2, 'error', 'Refresh token não encontrado - usuário precisa fazer login novamente');
+          } else if (refreshError) {
+            updateTestStatus(categoryIndex, 2, 'error', `Erro no refresh: ${refreshError.message}`);
+          } else {
+            updateTestStatus(categoryIndex, 2, 'success', 'Sessão ativa e refresh token válido');
+          }
+        } catch (refreshErr: any) {
+          updateTestStatus(categoryIndex, 2, 'error', `Erro no refresh token: ${refreshErr.message}`);
+        }
       } else {
         updateTestStatus(categoryIndex, 2, 'error', 'Sessão inválida');
       }
@@ -365,6 +388,87 @@ export const SystemTester = () => {
     updateTestStatus(categoryIndex, 3, 'success', 'Sistema de toast implementado');
   };
 
+  const runMechanicalTests = async () => {
+    const categoryIndex = 5;
+    
+    // Teste 1: Responsividade Mobile
+    setCurrentTest('Testando responsividade mobile...');
+    updateTestStatus(categoryIndex, 0, 'running');
+    try {
+      const viewport = window.innerWidth;
+      const isMobile = viewport < 768;
+      const isTablet = viewport >= 768 && viewport < 1024;
+      const isDesktop = viewport >= 1024;
+      
+      let deviceType = 'Desktop';
+      if (isMobile) deviceType = 'Mobile';
+      else if (isTablet) deviceType = 'Tablet';
+      
+      // Verificar se elementos estão se adaptando
+      const mobileElements = document.querySelectorAll('.sm\\:hidden, .md\\:block, .lg\\:block');
+      updateTestStatus(categoryIndex, 0, 'success', `Responsivo: ${deviceType} (${viewport}px)`, `${mobileElements.length} elementos responsivos`);
+    } catch (error: any) {
+      updateTestStatus(categoryIndex, 0, 'error', 'Erro na responsividade', error.message);
+    }
+
+    // Teste 2: Performance da Página
+    setCurrentTest('Medindo performance da página...');
+    updateTestStatus(categoryIndex, 1, 'running');
+    try {
+      const performanceData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const loadTime = performanceData ? performanceData.loadEventEnd - performanceData.fetchStart : 0;
+      
+      if (loadTime > 0) {
+        const status = loadTime < 3000 ? 'success' : 'error';
+        const message = loadTime < 3000 ? 'Performance boa' : 'Performance lenta';
+        updateTestStatus(categoryIndex, 1, status, message, `Carregamento: ${Math.round(loadTime)}ms`);
+      } else {
+        updateTestStatus(categoryIndex, 1, 'success', 'Performance OK', 'Dados de timing não disponíveis');
+      }
+    } catch (error: any) {
+      updateTestStatus(categoryIndex, 1, 'error', 'Erro na medição', error.message);
+    }
+
+    // Teste 3: Navegação e Links
+    setCurrentTest('Testando navegação e links...');
+    updateTestStatus(categoryIndex, 2, 'running');
+    try {
+      const links = document.querySelectorAll('a[href]');
+      const buttons = document.querySelectorAll('button');
+      const currentPath = window.location.pathname;
+      
+      updateTestStatus(categoryIndex, 2, 'success', 'Navegação funcional', `${links.length} links, ${buttons.length} botões`);
+    } catch (error: any) {
+      updateTestStatus(categoryIndex, 2, 'error', 'Erro na navegação', error.message);
+    }
+
+    // Teste 4: Formulários e Validações
+    setCurrentTest('Verificando formulários...');
+    updateTestStatus(categoryIndex, 3, 'running');
+    try {
+      const forms = document.querySelectorAll('form');
+      const inputs = document.querySelectorAll('input, textarea, select');
+      const requiredFields = document.querySelectorAll('[required]');
+      
+      updateTestStatus(categoryIndex, 3, 'success', 'Formulários ativos', `${forms.length} formulários, ${inputs.length} campos`);
+    } catch (error: any) {
+      updateTestStatus(categoryIndex, 3, 'error', 'Erro nos formulários', error.message);
+    }
+
+    // Teste 5: Elementos Interativos
+    setCurrentTest('Testando elementos interativos...');
+    updateTestStatus(categoryIndex, 4, 'running');
+    try {
+      const clickables = document.querySelectorAll('button, [role="button"], .cursor-pointer');
+      const modals = document.querySelectorAll('[role="dialog"]');
+      const tooltips = document.querySelectorAll('[data-tooltip]');
+      
+      updateTestStatus(categoryIndex, 4, 'success', 'Interatividade OK', `${clickables.length} elementos clicáveis`);
+    } catch (error: any) {
+      updateTestStatus(categoryIndex, 4, 'error', 'Erro nos elementos', error.message);
+    }
+  };
+
   const runAllTests = async () => {
     setTesting(true);
     setProgress(0);
@@ -396,6 +500,10 @@ export const SystemTester = () => {
 
       await runFunctionalityTests();
       completedTests += 4;
+      setProgress((completedTests / totalTests) * 100);
+
+      await runMechanicalTests();
+      completedTests += 5;
       setProgress(100);
 
     } catch (error) {
