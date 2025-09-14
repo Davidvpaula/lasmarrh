@@ -19,8 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'sans': ['Inter', 'ui-sans-serif', 'system-ui'],
-				'inter': ['Inter', 'sans-serif'],
+				'sans': ['Omnes', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				'omnes': ['Omnes', 'sans-serif'],
 			},
 			fontWeight: {
 				'extralight': '200',
