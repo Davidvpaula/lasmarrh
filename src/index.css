@@ -182,31 +182,6 @@ All colors MUST be HSL.
   .container-responsive {
     @apply px-2 sm:px-4 md:px-6 lg:px-8;
   }
-  
-  /* Font weight utilities matching Omnes structure */
-  .font-extralight {
-    @apply font-extralight;
-  }
-  
-  .font-light {
-    @apply font-light;
-  }
-  
-  .font-normal {
-    @apply font-normal;
-  }
-  
-  .font-medium {
-    @apply font-medium;
-  }
-  
-  .font-bold {
-    @apply font-bold;
-  }
-  
-  .font-extrabold {
-    @apply font-extrabold;
-  }
 }
 
 /* Keyframes */
