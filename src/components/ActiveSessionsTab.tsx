@@ -38,11 +38,20 @@ export const ActiveSessionsTab = () => {
       const { data: currentUser } = await supabase.auth.getUser();
       
       if (currentUser.user) {
+        // Fetch profiles with their roles from user_roles table
         const { data: profiles, error: profileError } = await supabase
           .from('profiles')
-          .select('user_id, full_name, email, role');
+          .select('user_id, full_name, email');
 
         if (profileError) throw profileError;
+
+        // Fetch all user roles
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('user_id, role');
+
+        // Create a map of user_id to role
+        const roleMap = new Map(userRoles?.map(ur => [ur.user_id, ur.role]) || []);
 
         // Create secure mock sessions without exposing tokens
         const mockSessions: ActiveSession[] = profiles?.map((profile, index) => ({
@@ -58,7 +67,7 @@ export const ActiveSessionsTab = () => {
           profiles: {
             full_name: profile.full_name,
             email: profile.email,
-            role: profile.role
+            role: roleMap.get(profile.user_id) || 'doctor'
           }
         })) || [];
 

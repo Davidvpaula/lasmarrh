@@ -40,13 +40,13 @@ const AdminAuth = () => {
       } else if (data?.user) {
         // Verificar perfil do usuário imediatamente
         try {
-          const { data: profile } = await supabase
-            .from('profiles')
+          const { data: roleData } = await supabase
+            .from('user_roles')
             .select('role')
             .eq('user_id', data.user.id)
             .single();
           
-          if (profile?.role === 'admin') {
+          if (roleData?.role === 'admin') {
             navigate('/dashboard/admin');
           } else {
             toast({

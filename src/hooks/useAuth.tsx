@@ -27,14 +27,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!sessionToUse?.user) return;
     
     try {
-      const { data, error } = await supabase
+      // Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', sessionToUse.user.id)
         .single();
       
-      if (error) throw error;
-      setProfile(data);
+      if (profileError) throw profileError;
+      
+      // Fetch user role from user_roles table
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', sessionToUse.user.id)
+        .single();
+      
+      // Combine profile data with role
+      setProfile({
+        ...profileData,
+        role: roleData?.role || 'doctor'
+      });
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -102,7 +115,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .single();
           
           if (!profileError && profileData) {
-            setProfile(profileData);
+            // Fetch user role from user_roles table
+            const { data: roleData } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', data.user.id)
+              .single();
+            
+            setProfile({
+              ...profileData,
+              role: roleData?.role || 'doctor'
+            });
           }
         } catch (profileFetchError) {
           console.error('Error fetching profile after login:', profileFetchError);

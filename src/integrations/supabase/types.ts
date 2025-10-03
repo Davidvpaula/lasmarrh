@@ -170,7 +170,6 @@ export type Database = {
           full_name: string
           id: string
           phone: string | null
-          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           user_id: string
         }
@@ -181,7 +180,6 @@ export type Database = {
           full_name: string
           id?: string
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id: string
         }
@@ -192,7 +190,6 @@ export type Database = {
           full_name?: string
           id?: string
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
         }
@@ -354,6 +351,27 @@ export type Database = {
           order_index?: number
           title?: string
           video_url?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
         }
         Relationships: []
       }

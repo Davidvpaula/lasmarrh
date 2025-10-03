@@ -29,15 +29,8 @@ const Setup = () => {
 
       if (authError) throw authError
 
-      if (authData.user) {
-        // Update the profile to admin role
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ role: 'admin' })
-          .eq('user_id', authData.user.id)
-
-        if (profileError) throw profileError
-      }
+      // The role is automatically set via the handle_new_user trigger
+      // No need to manually update the profiles table
 
       setIsComplete(true)
       toast({

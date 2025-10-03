@@ -48,13 +48,13 @@ const ProfessionalAuth = () => {
         // Verificar role e redirecionar adequadamente
         setTimeout(async () => {
           try {
-            const { data: profile } = await supabase
-              .from('profiles')
+            const { data: roleData } = await supabase
+              .from('user_roles')
               .select('role')
               .eq('user_id', data.user.id)
               .single();
             
-            if (profile?.role === 'admin') {
+            if (roleData?.role === 'admin') {
               toast({
                 title: "Acesso negado",
                 description: "Para acessar a área administrativa, use o login específico para administradores.",
