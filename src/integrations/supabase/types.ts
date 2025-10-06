@@ -72,7 +72,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "applications_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       audit_logs: {
         Row: {
@@ -106,36 +114,59 @@ export type Database = {
       }
       documents: {
         Row: {
+          application_id: string | null
           category: string | null
           created_at: string
           description: string | null
+          document_type: string | null
+          file_name: string | null
+          file_path: string | null
           file_url: string
           id: string
           is_active: boolean
           title: string
           updated_at: string
+          uploaded_at: string | null
         }
         Insert: {
+          application_id?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
+          document_type?: string | null
+          file_name?: string | null
+          file_path?: string | null
           file_url: string
           id?: string
           is_active?: boolean
           title: string
           updated_at?: string
+          uploaded_at?: string | null
         }
         Update: {
+          application_id?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
+          document_type?: string | null
+          file_name?: string | null
+          file_path?: string | null
           file_url?: string
           id?: string
           is_active?: boolean
           title?: string
           updated_at?: string
+          uploaded_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "documents_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -177,7 +208,9 @@ export type Database = {
           completed_at: string | null
           created_at: string
           id: string
+          notes: string | null
           stage_number: number
+          status: string | null
         }
         Insert: {
           application_id: string
@@ -185,7 +218,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: string
+          notes?: string | null
           stage_number: number
+          status?: string | null
         }
         Update: {
           application_id?: string
@@ -193,7 +228,9 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           id?: string
+          notes?: string | null
           stage_number?: number
+          status?: string | null
         }
         Relationships: []
       }
@@ -231,6 +268,7 @@ export type Database = {
           duration_minutes: number | null
           id: string
           is_active: boolean
+          order_index: number | null
           title: string
           updated_at: string
           video_url: string
@@ -241,6 +279,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           is_active?: boolean
+          order_index?: number | null
           title: string
           updated_at?: string
           video_url: string
@@ -251,6 +290,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           is_active?: boolean
+          order_index?: number | null
           title?: string
           updated_at?: string
           video_url?: string

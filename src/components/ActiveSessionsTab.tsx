@@ -96,9 +96,9 @@ export const ActiveSessionsTab = () => {
 
       // Log da ação
       await supabase.rpc('log_audit_event', {
-        p_action: 'TERMINATE_SESSION',
-        p_entity_type: 'active_sessions',
-        p_entity_id: sessionId
+        _action: 'TERMINATE_SESSION',
+        _table_name: 'active_sessions',
+        _record_id: sessionId
       });
 
       toast({
