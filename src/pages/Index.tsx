@@ -1,34 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, UserPlus, ArrowRight, CheckCircle, Users, Clock, FileText, MapPin, Smartphone, DollarSign } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import doctorTeleconsult1 from '@/assets/doctor-teleconsult-1.jpg';
 import doctorTeleconsult2 from '@/assets/doctor-teleconsult-2.jpg';
 import medicalTeamTelemed from '@/assets/medical-team-telemed.jpg';
 import medicalDigitalPlatform from '@/assets/medical-digital-platform.jpg';
 
 const Index = () => {
-  const { user, profile } = useAuth();
-  
   const handleNavigate = (path: string) => {
     window.location.href = path;
-  };
-  
-  const handleRestrictedAccess = (path: string, title: string) => {
-    if (!user) {
-      if (path.includes('/admin')) {
-        handleNavigate('/admin/auth');
-      } else {
-        handleNavigate('/auth');
-      }
-      return;
-    }
-    
-    if (path.includes('/admin') && profile?.role !== 'admin') {
-      return;
-    }
-    
-    handleNavigate(path);
   };
 
   return (
@@ -47,7 +27,7 @@ const Index = () => {
           
           <div className="flex gap-1 sm:gap-2 md:gap-3">
             <Button 
-              onClick={() => handleRestrictedAccess('/auth', 'Área do Profissional')}
+              onClick={() => handleNavigate('/auth')}
               variant="outline"
               size="sm"
               className="border-primary text-primary hover:bg-primary hover:text-white text-xs sm:text-sm px-2 sm:px-3"
@@ -56,7 +36,7 @@ const Index = () => {
               <span className="hidden sm:inline">Área do </span>Profissional
             </Button>
             <Button 
-              onClick={() => handleRestrictedAccess('/admin/auth', 'Área Admin')}
+              onClick={() => handleNavigate('/admin/auth')}
               variant="outline"
               size="sm"
               className="border-secondary text-secondary hover:bg-secondary hover:text-white text-xs sm:text-sm px-2 sm:px-3"
