@@ -81,7 +81,7 @@ const Applications = () => {
           crm: app.profiles?.crm || '',
           phone: app.profiles?.phone || ''
         },
-        stage_progress: app.stage_progress || []
+        stage_progress: Array.isArray(app.stage_progress) ? app.stage_progress : []
       })) || [];
 
       setApplications(transformedApplications);

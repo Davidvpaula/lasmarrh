@@ -43,13 +43,16 @@ export default function Interviews() {
 
       if (error) throw error;
 
-      const formattedData = data?.map(item => ({
-        application_id: item.application_id,
-        doctor_name: item.applications.profiles.full_name,
-        responses: item.notes ? JSON.parse(item.notes) : {},
-        submitted_at: item.created_at,
-        status: item.status
-      })) || [];
+      const formattedData = data?.map(item => {
+        const appData = item.applications as any;
+        return {
+          application_id: item.application_id,
+          doctor_name: appData?.profiles?.full_name || 'Nome não informado',
+          responses: item.notes ? JSON.parse(item.notes) : {},
+          submitted_at: item.created_at,
+          status: item.status
+        };
+      }) || [];
 
       setInterviews(formattedData);
     } catch (error) {

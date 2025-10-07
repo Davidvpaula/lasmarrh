@@ -22,7 +22,6 @@ import Forms from './pages/admin/Forms';
 import AdminTraining from './pages/admin/Training';
 import SystemTesterPage from './pages/admin/SystemTester';
 import NotFound from './pages/NotFound';
-import Setup from './pages/Setup';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { Toaster } from '@/components/ui/toaster';
 import './App.css';
@@ -55,7 +54,6 @@ function AppContent() {
       <div className="min-h-screen">
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/setup" element={<Setup />} />
           <Route path="/auth" element={<ProfessionalAuth />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/professional/auth" element={<ProfessionalAuth />} />

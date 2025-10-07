@@ -56,10 +56,11 @@ export default function Forms() {
 
       const formattedData = stageData?.map(item => {
         const relatedDocs = documentsData?.filter(doc => doc.application_id === item.application_id) || [];
+        const appData = item.applications as any;
         
         return {
           application_id: item.application_id,
-          doctor_name: item.applications.profiles.full_name,
+          doctor_name: appData?.profiles?.full_name || 'Nome não informado',
           form_data: item.notes ? JSON.parse(item.notes) : {},
           documents: relatedDocs,
           submitted_at: item.created_at,
