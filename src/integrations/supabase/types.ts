@@ -261,6 +261,54 @@ export type Database = {
         }
         Relationships: []
       }
+      training_progress: {
+        Row: {
+          application_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          started_at: string | null
+          updated_at: string
+          video_id: string
+          watch_time_minutes: number | null
+        }
+        Insert: {
+          application_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          started_at?: string | null
+          updated_at?: string
+          video_id: string
+          watch_time_minutes?: number | null
+        }
+        Update: {
+          application_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          started_at?: string | null
+          updated_at?: string
+          video_id?: string
+          watch_time_minutes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_progress_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_progress_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "training_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_videos: {
         Row: {
           created_at: string
