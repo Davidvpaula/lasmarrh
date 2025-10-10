@@ -35,7 +35,7 @@ export default function Interviews() {
           created_at,
           applications!inner(
             doctor_id,
-            profiles!inner(full_name)
+            profiles!applications_doctor_id_fkey(full_name)
           )
         `)
         .eq('stage_number', 2)
