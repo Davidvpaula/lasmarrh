@@ -360,7 +360,7 @@ const ProfessionalTraining = () => {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <Button variant="outline" onClick={handleBackToDashboard} className="mb-6">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar ao Dashboard
+            Voltar ao Painel Profissional
           </Button>
 
           <Card className="border-success">
@@ -386,7 +386,7 @@ const ProfessionalTraining = () => {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Button variant="outline" onClick={handleBackToDashboard} className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar ao Dashboard
+          Voltar ao Painel Profissional
         </Button>
 
         <div className="space-y-6">

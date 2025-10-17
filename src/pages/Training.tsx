@@ -245,9 +245,9 @@ const Training = () => {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <Button variant="outline" onClick={() => navigate('/dashboard')} className="mb-6">
+          <Button variant="outline" onClick={() => navigate('/dashboard/professional')} className="mb-6">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar ao Dashboard
+            Voltar ao Painel Profissional
           </Button>
 
           <Card className="border-success">
@@ -271,9 +271,9 @@ const Training = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Button variant="outline" onClick={() => navigate('/dashboard')} className="mb-6">
+        <Button variant="outline" onClick={() => navigate('/dashboard/professional')} className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar ao Dashboard
+          Voltar ao Painel Profissional
         </Button>
 
         <div className="space-y-6">
