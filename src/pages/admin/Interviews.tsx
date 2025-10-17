@@ -33,7 +33,7 @@ export default function Interviews() {
         .from('stage_progress')
         .select('application_id, notes, status, created_at')
         .eq('stage_number', 2)
-        .in('status', ['in_progress', 'completed', 'approved', 'rejected']);
+        .in('status', ['available', 'in_progress', 'completed', 'approved', 'rejected']);
 
       if (error) throw error;
 
@@ -132,7 +132,8 @@ export default function Interviews() {
               }>
                 {interview.status === 'approved' ? 'Aprovada' :
                  interview.status === 'rejected' ? 'Rejeitada' : 
-                 interview.status === 'in_progress' ? 'Em Andamento' : 'Pendente'}
+                 interview.status === 'in_progress' ? 'Em Andamento' : 
+                 interview.status === 'available' ? 'Aguardando' : 'Pendente'}
               </Badge>
             </div>
 
@@ -336,7 +337,8 @@ export default function Interviews() {
             }>
               {interview.status === 'approved' ? 'Aprovada' :
                interview.status === 'rejected' ? 'Rejeitada' : 
-               interview.status === 'in_progress' ? 'Em Andamento' : 'Pendente'}
+               interview.status === 'in_progress' ? 'Em Andamento' : 
+               interview.status === 'available' ? 'Aguardando' : 'Pendente'}
             </Badge>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
@@ -402,7 +404,7 @@ export default function Interviews() {
         <div className="flex gap-2 mt-6 pt-4 border-t">
           <InterviewDetailsDialog interview={interview} />
           
-          {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress' || interview.status === 'rejected') && (
+          {(interview.status === 'available' || interview.status === 'in_progress' || interview.status === 'rejected') && (
             <Button
               onClick={() => handleStatusUpdate(interview.application_id, 'approved')}
               className="flex items-center gap-2 bg-success hover:bg-success/90"
@@ -412,7 +414,7 @@ export default function Interviews() {
               Aprovar
             </Button>
           )}
-          {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress' || interview.status === 'approved') && (
+          {(interview.status === 'available' || interview.status === 'in_progress' || interview.status === 'approved') && (
             <Button
               onClick={() => handleStatusUpdate(interview.application_id, 'rejected')}
               variant="destructive"
@@ -456,7 +458,7 @@ export default function Interviews() {
             Todas ({interviews.length})
           </TabsTrigger>
           <TabsTrigger value="pending">
-            Pendentes ({interviews.filter(i => i.status === 'active' || i.status === 'available' || i.status === 'pending' || i.status === 'in_progress').length})
+            Pendentes ({interviews.filter(i => i.status === 'available' || i.status === 'in_progress').length})
           </TabsTrigger>
           <TabsTrigger value="approved">
             Aprovadas ({interviews.filter(i => i.status === 'approved').length})
@@ -483,7 +485,7 @@ export default function Interviews() {
         </TabsContent>
 
         <TabsContent value="pending" className="space-y-4">
-          {interviews.filter(i => i.status === 'active' || i.status === 'available' || i.status === 'pending' || i.status === 'in_progress').length === 0 ? (
+          {interviews.filter(i => i.status === 'available' || i.status === 'in_progress').length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -491,7 +493,7 @@ export default function Interviews() {
               </CardContent>
             </Card>
           ) : (
-            interviews.filter(i => i.status === 'active' || i.status === 'available' || i.status === 'pending' || i.status === 'in_progress').map((interview) => renderInterviewCard(interview))
+            interviews.filter(i => i.status === 'available' || i.status === 'in_progress').map((interview) => renderInterviewCard(interview))
           )}
         </TabsContent>
 
