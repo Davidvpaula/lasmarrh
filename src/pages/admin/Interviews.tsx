@@ -28,37 +28,63 @@ export default function Interviews() {
 
   const fetchInterviews = async () => {
     try {
-      // Buscar entrevistas (stage 2) sem joins implícitos
+      // Buscar entrevistas (stage 2) - incluindo entrevistas em progresso
       const { data: stages, error } = await supabase
         .from('stage_progress')
         .select('application_id, notes, status, created_at')
         .eq('stage_number', 2)
-        .not('notes', 'is', null);
+        .in('status', ['in_progress', 'completed', 'approved', 'rejected']);
 
       if (error) throw error;
 
-      const appIds = (stages || []).map((s: any) => s.application_id);
+      // Filtrar apenas entrevistas que têm dados preenchidos
+      const stagesWithData = (stages || []).filter((s: any) => {
+        if (!s.notes) return false;
+        try {
+          const parsed = JSON.parse(s.notes);
+          // Verificar se tem pelo menos um campo preenchido além da disponibilidade
+          const hasData = Object.keys(parsed).some(key => {
+            if (key === 'availability') return false;
+            return parsed[key] && parsed[key].toString().trim().length > 0;
+          });
+          return hasData || (parsed.availability && Object.keys(parsed.availability).length > 0);
+        } catch {
+          return false;
+        }
+      });
+
+      const appIds = stagesWithData.map((s: any) => s.application_id);
+      
+      if (appIds.length === 0) {
+        setInterviews([]);
+        return;
+      }
+
       const { data: appsRes, error: appsErr } = await supabase
         .from('applications')
         .select('id, doctor_id')
-        .in('id', appIds.length ? appIds : ['00000000-0000-0000-0000-000000000000']);
+        .in('id', appIds);
       if (appsErr) throw appsErr;
 
       const doctorIds = (appsRes || []).map((a: any) => a.doctor_id);
       const { data: profilesRes, error: profilesErr } = await supabase
         .from('profiles')
         .select('user_id, full_name')
-        .in('user_id', doctorIds.length ? doctorIds : ['00000000-0000-0000-0000-000000000000']);
+        .in('user_id', doctorIds);
       if (profilesErr) throw profilesErr;
 
       const appMap = new Map((appsRes || []).map((a: any) => [a.id, a.doctor_id]));
       const profileMap = new Map((profilesRes || []).map((p: any) => [p.user_id, p.full_name]));
 
-      const formattedData: InterviewResponse[] = (stages || []).map((item: any) => {
+      const formattedData: InterviewResponse[] = stagesWithData.map((item: any) => {
         const doctorId = appMap.get(item.application_id);
         const doctorName = profileMap.get(doctorId) || 'Nome não informado';
         let parsed: any = {};
-        try { parsed = item.notes ? JSON.parse(item.notes) : {}; } catch {}
+        try { 
+          parsed = item.notes ? JSON.parse(item.notes) : {}; 
+        } catch (e) {
+          console.error('Erro ao fazer parse do JSON:', e);
+        }
         return {
           application_id: item.application_id,
           doctor_name: doctorName,
@@ -327,29 +353,48 @@ export default function Interviews() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {Object.entries(interview.responses).map(([question, answer]) => (
-            <div key={question} className="border-l-2 border-primary/20 pl-4">
-              <p className="font-medium text-sm text-muted-foreground mb-1">
-                {question === 'motivation' ? 'Motivação' : 
-                 question === 'experience' ? 'Experiência' : 
-                 question === 'expectations' ? 'Expectativas' : 
-                 question === 'whatsapp' ? 'WhatsApp' :
-                 question === 'availability' ? 'Disponibilidade' : question}
+          {/* Mostrar campos de texto primeiro */}
+          {Object.entries(interview.responses)
+            .filter(([key]) => key !== 'availability')
+            .map(([question, answer]) => (
+              <div key={question} className="border-l-2 border-primary/20 pl-4">
+                <p className="font-medium text-sm text-muted-foreground mb-1">
+                  {question === 'motivation' ? 'Motivação' : 
+                   question === 'experience' ? 'Experiência' : 
+                   question === 'expectations' ? 'Experiência com Teleconsulta' : 
+                   question === 'whatsapp' ? 'WhatsApp' : question}
+                </p>
+                <p className="text-sm whitespace-pre-wrap">{String(answer)}</p>
+              </div>
+            ))}
+          
+          {/* Mostrar disponibilidade por último */}
+          {interview.responses.availability && typeof interview.responses.availability === 'object' && (
+            <div className="border-l-2 border-primary/20 pl-4">
+              <p className="font-medium text-sm text-muted-foreground mb-2">
+                Disponibilidade de Horário
               </p>
-              {question === 'availability' && typeof answer === 'object' ? (
-                <div className="space-y-2">
-                  {Object.entries(answer as Record<string, string[]>).map(([day, slots]) => (
-                    <div key={day} className="text-sm">
-                      <span className="font-medium">{day}: </span>
-                      <span>{Array.isArray(slots) ? slots.join(', ') : 'Não disponível'}</span>
+              <div className="space-y-2">
+                {Object.entries(interview.responses.availability as Record<string, string[]>).map(([day, slots]) => {
+                  if (!slots || !Array.isArray(slots) || slots.length === 0) return null;
+                  return (
+                    <div key={day} className="flex gap-2 text-sm">
+                      <span className="font-medium min-w-[100px]">
+                        {DAYS_OF_WEEK_MAP[day] || day}:
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {slots.map((slot, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {slot}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm">{String(answer)}</p>
-              )}
+                  );
+                })}
+              </div>
             </div>
-          ))}
+          )}
         </div>
         
         <div className="flex gap-2 mt-6 pt-4 border-t">
@@ -405,10 +450,18 @@ export default function Interviews() {
 
       <Tabs defaultValue="all" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="all">Todas</TabsTrigger>
-          <TabsTrigger value="pending">Pendentes</TabsTrigger>
-          <TabsTrigger value="approved">Aprovadas</TabsTrigger>
-          <TabsTrigger value="rejected">Rejeitadas</TabsTrigger>
+          <TabsTrigger value="all">
+            Todas ({interviews.length})
+          </TabsTrigger>
+          <TabsTrigger value="pending">
+            Pendentes ({interviews.filter(i => i.status === 'active' || i.status === 'available' || i.status === 'pending' || i.status === 'in_progress').length})
+          </TabsTrigger>
+          <TabsTrigger value="approved">
+            Aprovadas ({interviews.filter(i => i.status === 'approved').length})
+          </TabsTrigger>
+          <TabsTrigger value="rejected">
+            Rejeitadas ({interviews.filter(i => i.status === 'rejected').length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -416,7 +469,10 @@ export default function Interviews() {
             <Card>
               <CardContent className="p-8 text-center">
                 <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Nenhuma entrevista encontrada</p>
+                <p className="text-muted-foreground">Nenhuma entrevista preenchida encontrada</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  As entrevistas aparecerão aqui assim que os profissionais de saúde preencherem o formulário
+                </p>
               </CardContent>
             </Card>
           ) : (
