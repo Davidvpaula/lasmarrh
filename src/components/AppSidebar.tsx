@@ -100,18 +100,34 @@ export function AppSidebar() {
     { title: "Meu Perfil", url: "/profile", icon: User },
   ]
 
-  const adminItems = [
-    { title: "Início", url: "/dashboard/admin", icon: Home },
-    { title: "Candidatos", url: "/admin/applications", icon: Users },
-    { title: "Entrevista", url: "/admin/interviews", icon: MessageSquare },
-    { title: "Formulário", url: "/admin/forms", icon: FolderOpen },
-    { title: "Treinamento", url: "/admin/training", icon: GraduationCap },
-    { title: "Uploads", url: "/admin/uploads", icon: Upload },
-    { title: "Configurações", url: "/admin/settings", icon: Settings },
-    { title: "Sistema Tester", url: "/admin/system-tester", icon: Play },
+  const adminMenuGroups = [
+    {
+      label: "Início",
+      items: [
+        { title: "Início", url: "/dashboard/admin", icon: Home },
+      ]
+    },
+    {
+      label: "Candidatos",
+      items: [
+        { title: "Ver Candidatos", url: "/admin/applications", icon: Users },
+        { title: "Ver Entrevista", url: "/admin/interviews", icon: MessageSquare },
+        { title: "Ver Formulário", url: "/admin/forms", icon: FolderOpen },
+        { title: "Ver Treinamentos", url: "/admin/training", icon: GraduationCap },
+      ]
+    },
+    {
+      label: "Gestão de Ferramentas",
+      items: [
+        { title: "Editar Entrevista", url: "/admin/edit-interview", icon: MessageSquare },
+        { title: "Editar Formulário", url: "/admin/edit-forms", icon: FolderOpen },
+        { title: "Editar Treinamento", url: "/admin/edit-training", icon: GraduationCap },
+        { title: "Uploads", url: "/admin/uploads", icon: Upload },
+        { title: "Configurações", url: "/admin/settings", icon: Settings },
+        { title: "Sistema Tester", url: "/admin/system-tester", icon: Play },
+      ]
+    }
   ]
-
-  const items = isAdminContext ? adminItems : doctorItems
 
   const handleSignOut = async () => {
     try {
@@ -134,31 +150,62 @@ export function AppSidebar() {
     >
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-            {isAdminContext ? 'Administração' : 'Navegação'}
-          </SidebarGroupLabel>
-
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      end 
-                      className={getNavCls}
-                      onClick={(e) => handleNavigation(e, item.url, item.title)}
-                    >
-                      <item.icon className="mr-3 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {isAdminContext ? (
+          // Admin menu com grupos hierárquicos
+          <>
+            {adminMenuGroups.map((group) => (
+              <SidebarGroup key={group.label}>
+                <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {group.label}
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink 
+                            to={item.url} 
+                            end 
+                            className={getNavCls}
+                          >
+                            <item.icon className="mr-3 h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))}
+          </>
+        ) : (
+          // Menu do profissional (mantido como antes)
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+              Navegação
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {doctorItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        end 
+                        className={getNavCls}
+                        onClick={(e) => handleNavigation(e, item.url, item.title)}
+                      >
+                        <item.icon className="mr-3 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
