@@ -615,53 +615,6 @@ const Documents = () => {
             </CardContent>
           </Card>
 
-          {/* Contract Download Section */}
-          {signatureDocuments.length > 0 && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Download className="h-6 w-6 text-primary" />
-                  <div>
-                    <CardTitle>Download do Contrato</CardTitle>
-                    <CardDescription>
-                      Baixe os contratos disponibilizados pelo administrador
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {signatureDocuments.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between border rounded-lg p-4 hover:bg-accent/50 transition-colors">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <FileText className="h-5 w-5 text-primary" />
-                          <h4 className="font-medium">{doc.title}</h4>
-                          {doc.is_required && (
-                            <span className="text-xs px-2 py-1 bg-destructive/10 text-destructive rounded">Obrigatório</span>
-                          )}
-                        </div>
-                        {doc.description && (
-                          <p className="text-sm text-muted-foreground ml-7">{doc.description}</p>
-                        )}
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(doc.file_url, '_blank')}
-                        className="flex-shrink-0 ml-4"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Baixar
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Signature Documents - Available for Download and Signing */}
           {signatureDocuments.length > 0 && (
             <Card>
