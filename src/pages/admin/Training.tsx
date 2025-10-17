@@ -1,67 +1,107 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { GraduationCap, Plus, Edit, Trash2, Play, Clock } from "lucide-react";
+import { GraduationCap, CheckCircle2, Clock, PlayCircle, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 interface TrainingVideo {
   id: string;
   title: string;
-  description: string;
-  video_url: string;
   duration_minutes: number;
   order_index: number;
-  is_active: boolean;
-  created_at: string;
+}
+
+interface TrainingProgress {
+  video_id: string;
+  watch_time_minutes: number;
+  completed_at: string | null;
+  started_at: string | null;
+}
+
+interface CandidateProgress {
+  candidate_id: string;
+  candidate_name: string;
+  candidate_email: string;
+  application_id: string;
+  progress: TrainingProgress[];
+  total_videos: number;
+  completed_videos: number;
+  in_progress_videos: number;
+  not_started_videos: number;
 }
 
 export default function Training() {
   const [videos, setVideos] = useState<TrainingVideo[]>([]);
+  const [candidates, setCandidates] = useState<CandidateProgress[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingVideo, setEditingVideo] = useState<TrainingVideo | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    video_url: '',
-    duration_minutes: 0,
-    order_index: 0,
-    is_active: true
-  });
-
   useEffect(() => {
-    fetchVideos();
+    fetchTrainingData();
   }, []);
 
-  const fetchVideos = async () => {
+  const fetchTrainingData = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar vídeos de treinamento
+      const { data: videosData, error: videosError } = await supabase
         .from('training_videos')
-        .select('*')
+        .select('id, title, duration_minutes, order_index')
+        .eq('is_active', true)
         .order('order_index', { ascending: true });
 
-      if (error) throw error;
+      if (videosError) throw videosError;
 
-      setVideos(data || []);
+      setVideos(videosData || []);
+
+      // Buscar candidatos com suas aplicações
+      const { data: applicationsData, error: applicationsError } = await supabase
+        .from('applications')
+        .select(`
+          id,
+          doctor_id,
+          profiles!inner(full_name, email)
+        `);
+
+      if (applicationsError) throw applicationsError;
+
+      // Buscar progresso de treinamento de todos os candidatos
+      const { data: progressData, error: progressError } = await supabase
+        .from('training_progress')
+        .select('application_id, video_id, watch_time_minutes, completed_at, started_at');
+
+      if (progressError) throw progressError;
+
+      // Organizar dados por candidato
+      const candidatesMap = new Map<string, CandidateProgress>();
+
+      applicationsData?.forEach((app: any) => {
+        const candidateProgress = progressData?.filter(p => p.application_id === app.id) || [];
+        
+        const completedVideos = candidateProgress.filter(p => p.completed_at !== null).length;
+        const inProgressVideos = candidateProgress.filter(p => p.started_at !== null && p.completed_at === null).length;
+        const notStartedVideos = (videosData?.length || 0) - candidateProgress.length;
+
+        candidatesMap.set(app.id, {
+          candidate_id: app.doctor_id,
+          candidate_name: app.profiles.full_name,
+          candidate_email: app.profiles.email,
+          application_id: app.id,
+          progress: candidateProgress,
+          total_videos: videosData?.length || 0,
+          completed_videos: completedVideos,
+          in_progress_videos: inProgressVideos,
+          not_started_videos: notStartedVideos
+        });
+      });
+
+      setCandidates(Array.from(candidatesMap.values()));
     } catch (error) {
-      console.error('Erro ao buscar vídeos:', error);
+      console.error('Erro ao buscar dados:', error);
       toast({
         title: "Erro",
-        description: "Falha ao carregar vídeos de treinamento",
+        description: "Falha ao carregar dados de treinamento",
         variant: "destructive",
       });
     } finally {
@@ -69,118 +109,45 @@ export default function Training() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const getVideoProgress = (candidateProgress: TrainingProgress[], videoId: string, videoDuration: number) => {
+    const progress = candidateProgress.find(p => p.video_id === videoId);
     
-    try {
-      if (editingVideo) {
-        const { error } = await supabase
-          .from('training_videos')
-          .update(formData)
-          .eq('id', editingVideo.id);
+    if (!progress) {
+      return { status: 'not_started', percentage: 0, watchTime: 0 };
+    }
+    
+    if (progress.completed_at) {
+      return { status: 'completed', percentage: 100, watchTime: videoDuration };
+    }
+    
+    const percentage = Math.min(100, Math.round((progress.watch_time_minutes / videoDuration) * 100));
+    return { 
+      status: 'in_progress', 
+      percentage, 
+      watchTime: progress.watch_time_minutes 
+    };
+  };
 
-        if (error) throw error;
-
-        toast({
-          title: "Sucesso",
-          description: "Vídeo atualizado com sucesso",
-        });
-      } else {
-        const { error } = await supabase
-          .from('training_videos')
-          .insert([formData]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Sucesso",
-          description: "Vídeo criado com sucesso",
-        });
-      }
-
-      resetForm();
-      fetchVideos();
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      console.error('Erro ao salvar vídeo:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao salvar vídeo",
-        variant: "destructive",
-      });
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle2 className="h-4 w-4 text-green-600" />;
+      case 'in_progress':
+        return <PlayCircle className="h-4 w-4 text-blue-600" />;
+      default:
+        return <XCircle className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
-  const handleDelete = async (videoId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este vídeo?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('training_videos')
-        .delete()
-        .eq('id', videoId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Sucesso",
-        description: "Vídeo excluído com sucesso",
-      });
-
-      fetchVideos();
-    } catch (error) {
-      console.error('Erro ao excluir vídeo:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao excluir vídeo",
-        variant: "destructive",
-      });
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge variant="default" className="bg-green-600">Concluído</Badge>;
+      case 'in_progress':
+        return <Badge variant="default" className="bg-blue-600">Em Progresso</Badge>;
+      default:
+        return <Badge variant="secondary">Não Iniciado</Badge>;
     }
-  };
-
-  const handleToggleActive = async (videoId: string, isActive: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('training_videos')
-        .update({ is_active: !isActive })
-        .eq('id', videoId);
-
-      if (error) throw error;
-
-      fetchVideos();
-    } catch (error) {
-      console.error('Erro ao atualizar status:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao atualizar status do vídeo",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      video_url: '',
-      duration_minutes: 0,
-      order_index: videos.length,
-      is_active: true
-    });
-    setEditingVideo(null);
-  };
-
-  const startEdit = (video: TrainingVideo) => {
-    setEditingVideo(video);
-    setFormData({
-      title: video.title,
-      description: video.description || '',
-      video_url: video.video_url,
-      duration_minutes: video.duration_minutes || 0,
-      order_index: video.order_index,
-      is_active: video.is_active
-    });
-    setIsCreateDialogOpen(true);
   };
 
   if (loading) {
@@ -200,175 +167,105 @@ export default function Training() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <GraduationCap className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Gerenciamento de Treinamento</h1>
-        </div>
-        
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Adicionar Vídeo
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {editingVideo ? 'Editar Vídeo' : 'Adicionar Novo Vídeo'}
-              </DialogTitle>
-            </DialogHeader>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Título</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="video_url">URL do Vídeo</Label>
-                <Input
-                  id="video_url"
-                  type="url"
-                  value={formData.video_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
-                  placeholder="https://..."
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Duração (minutos)</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    value={formData.duration_minutes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, duration_minutes: parseInt(e.target.value) || 0 }))}
-                    min="0"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="order">Ordem</Label>
-                  <Input
-                    id="order"
-                    type="number"
-                    value={formData.order_index}
-                    onChange={(e) => setFormData(prev => ({ ...prev, order_index: parseInt(e.target.value) || 0 }))}
-                    min="0"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
-                />
-                <Label htmlFor="active">Vídeo ativo</Label>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit">
-                  {editingVideo ? 'Atualizar' : 'Criar'} Vídeo
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+      <div className="flex items-center gap-3 mb-6">
+        <GraduationCap className="h-8 w-8 text-primary" />
+        <h1 className="text-3xl font-bold">Progresso de Treinamento dos Candidatos</h1>
       </div>
 
-      <div className="grid gap-4">
-        {videos.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Nenhum vídeo de treinamento cadastrado</p>
-            </CardContent>
-          </Card>
-        ) : (
-          videos.map((video) => (
-            <Card key={video.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Play className="h-5 w-5 text-primary" />
+      {candidates.length === 0 ? (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Nenhum candidato encontrado</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {candidates.map((candidate) => {
+            const overallProgress = candidate.total_videos > 0 
+              ? Math.round((candidate.completed_videos / candidate.total_videos) * 100)
+              : 0;
+
+            return (
+              <Card key={candidate.application_id} className="overflow-hidden">
+                <CardHeader className="bg-muted/50">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg">{video.title}</CardTitle>
-                      {video.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {video.description}
-                        </p>
-                      )}
+                      <CardTitle className="text-xl">{candidate.candidate_name}</CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {candidate.candidate_email}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-primary">
+                        {overallProgress}%
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {candidate.completed_videos} de {candidate.total_videos} concluídos
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={video.is_active}
-                      onCheckedChange={() => handleToggleActive(video.id, video.is_active)}
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => startEdit(video)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(video.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="mt-4">
+                    <Progress value={overallProgress} className="h-2" />
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {video.duration_minutes} min
+                  <div className="flex gap-4 mt-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <span>{candidate.completed_videos} Concluídos</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <PlayCircle className="h-4 w-4 text-blue-600" />
+                      <span>{candidate.in_progress_videos} Em Progresso</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-muted-foreground" />
+                      <span>{candidate.not_started_videos} Não Iniciados</span>
+                    </div>
                   </div>
-                  <div>Ordem: {video.order_index}</div>
-                  <div>Status: {video.is_active ? 'Ativo' : 'Inativo'}</div>
-                </div>
-                <div className="mt-2">
-                  <a
-                    href={video.video_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline text-sm"
-                  >
-                    {video.video_url}
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {videos.map((video) => {
+                      const videoProgress = getVideoProgress(
+                        candidate.progress, 
+                        video.id, 
+                        video.duration_minutes
+                      );
+
+                      return (
+                        <div 
+                          key={video.id}
+                          className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                        >
+                          <div className="flex-shrink-0">
+                            {getStatusIcon(videoProgress.status)}
+                          </div>
+                          <div className="flex-grow min-w-0">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-medium truncate">{video.title}</h4>
+                              {getStatusBadge(videoProgress.status)}
+                            </div>
+                            <Progress value={videoProgress.percentage} className="h-1.5 mb-2" />
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>
+                                  {videoProgress.watchTime} / {video.duration_minutes} min
+                                </span>
+                              </div>
+                              <span>{videoProgress.percentage}% completo</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
