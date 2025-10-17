@@ -40,6 +40,27 @@ export default function Training() {
 
   useEffect(() => {
     fetchTrainingData();
+
+    // Configurar realtime subscription para atualizações automáticas
+    const progressChannel = supabase
+      .channel('training-progress-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'training_progress'
+        },
+        (payload) => {
+          console.log('Training progress changed:', payload);
+          fetchTrainingData(); // Recarregar dados quando houver mudanças
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(progressChannel);
+    };
   }, []);
 
   const fetchTrainingData = async () => {
@@ -55,16 +76,26 @@ export default function Training() {
 
       setVideos(videosData || []);
 
-      // Buscar candidatos com suas aplicações
+      // Buscar todas as aplicações
       const { data: applicationsData, error: applicationsError } = await supabase
         .from('applications')
-        .select(`
-          id,
-          doctor_id,
-          profiles!inner(full_name, email)
-        `);
+        .select('id, doctor_id');
 
       if (applicationsError) throw applicationsError;
+
+      // Buscar perfis dos doctors
+      const doctorIds = applicationsData?.map(app => app.doctor_id) || [];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email')
+        .in('user_id', doctorIds);
+
+      if (profilesError) throw profilesError;
+
+      // Criar mapa de perfis para acesso rápido
+      const profilesMap = new Map(
+        profilesData?.map(p => [p.user_id, p]) || []
+      );
 
       // Buscar progresso de treinamento de todos os candidatos
       const { data: progressData, error: progressError } = await supabase
@@ -77,6 +108,9 @@ export default function Training() {
       const candidatesMap = new Map<string, CandidateProgress>();
 
       applicationsData?.forEach((app: any) => {
+        const profile = profilesMap.get(app.doctor_id);
+        if (!profile) return; // Pular se não encontrar perfil
+
         const candidateProgress = progressData?.filter(p => p.application_id === app.id) || [];
         
         const completedVideos = candidateProgress.filter(p => p.completed_at !== null).length;
@@ -85,8 +119,8 @@ export default function Training() {
 
         candidatesMap.set(app.id, {
           candidate_id: app.doctor_id,
-          candidate_name: app.profiles.full_name,
-          candidate_email: app.profiles.email,
+          candidate_name: profile.full_name || 'Nome não informado',
+          candidate_email: profile.email || 'Email não informado',
           application_id: app.id,
           progress: candidateProgress,
           total_videos: videosData?.length || 0,
