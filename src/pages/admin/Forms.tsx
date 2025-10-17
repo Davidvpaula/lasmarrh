@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FolderOpen, User, Calendar, CheckCircle, XCircle, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { FolderOpen, User, Calendar, CheckCircle, XCircle, FileText, Eye, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 
 interface FormResponse {
   application_id: string;
@@ -152,6 +154,178 @@ export default function Forms() {
     }
   };
 
+  const FormDetailsDialog = ({ form }: { form: FormResponse }) => {
+    const docTypeLabels: { [key: string]: string } = {
+      rg: 'RG (Frente e Verso)',
+      cpf: 'CPF',
+      crm: 'CRM',
+      diploma: 'Diploma de Medicina',
+      residencia: 'Certificado de Residência',
+      curriculum: 'Currículo Atualizado'
+    };
+
+    const fieldLabels: { [key: string]: string } = {
+      full_name: 'Nome Completo',
+      cpf: 'CPF',
+      rg: 'RG',
+      birth_date: 'Data de Nascimento',
+      phone: 'Telefone',
+      address: 'Endereço',
+      crm_number: 'Número do CRM',
+      specialty: 'Especialidade',
+      graduation_year: 'Ano de Formatura',
+      institution: 'Instituição de Ensino'
+    };
+
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Eye className="h-4 w-4" />
+            Ver Detalhes Completos
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Formulário de {form.doctor_name}
+            </DialogTitle>
+            <DialogDescription>
+              Enviado em {new Date(form.submitted_at).toLocaleDateString('pt-BR')} às {new Date(form.submitted_at).toLocaleTimeString('pt-BR')}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 mt-4">
+            {/* Status Badge */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Status:</span>
+              <Badge variant={
+                form.status === 'approved' ? 'default' :
+                form.status === 'rejected' ? 'destructive' : 'secondary'
+              }>
+                {form.status === 'approved' ? 'Aprovado' :
+                 form.status === 'rejected' ? 'Rejeitado' : 'Pendente'}
+              </Badge>
+            </div>
+
+            <Separator />
+
+            {/* Informações Pessoais */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                Informações Pessoais
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                {form.form_data?.form && Object.entries(form.form_data.form).map(([field, value]) => (
+                  <div key={field} className="border rounded-lg p-3 bg-muted/30">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {fieldLabels[field] || field}
+                    </span>
+                    <p className="text-sm font-medium mt-1">
+                      {field === 'birth_date' && value ? 
+                        new Date(value as string).toLocaleDateString('pt-BR') :
+                        String(value || 'Não informado')
+                      }
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Documentos Anexados */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Documentos Anexados ({form.documents.length})
+              </h3>
+              
+              {form.documents.length > 0 ? (
+                <div className="space-y-3">
+                  {form.documents.map((doc) => (
+                    <div key={doc.id} className="border rounded-lg p-4 bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="p-2 bg-primary/10 rounded">
+                            <FileText className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">
+                              {docTypeLabels[doc.document_type] || doc.document_type}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {doc.file_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Enviado: {new Date(doc.created_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: "Visualizar Documento",
+                                description: `Abrindo ${docTypeLabels[doc.document_type] || doc.document_type}`,
+                              });
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Ver
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: "Download",
+                                description: `Baixando ${doc.file_name}`,
+                              });
+                            }}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Baixar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                  <p>Nenhum documento anexado</p>
+                </div>
+              )}
+            </div>
+
+            {/* Documentos Marcados como Enviados */}
+            {form.form_data?.uploadedDocs && form.form_data.uploadedDocs.length > 0 && (
+              <>
+                <Separator />
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Documentos Registrados:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {form.form_data.uploadedDocs.map((docType: string) => (
+                      <Badge key={docType} variant="secondary">
+                        {docTypeLabels[docType] || docType}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -295,27 +469,31 @@ export default function Forms() {
                     )}
                   </div>
                   
-                  {(form.status === 'pending' || form.status === 'in_progress') && (
-                    <div className="flex gap-2 mt-6 pt-4 border-t">
-                      <Button
-                        onClick={() => handleStatusUpdate(form.application_id, 'approved')}
-                        className="flex items-center gap-2 bg-success hover:bg-success/90"
-                        size="sm"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        Aprovar Formulário
-                      </Button>
-                      <Button
-                        onClick={() => handleStatusUpdate(form.application_id, 'rejected')}
-                        variant="destructive"
-                        className="flex items-center gap-2"
-                        size="sm"
-                      >
-                        <XCircle className="h-4 w-4" />
-                        Rejeitar Formulário
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex gap-2 mt-6 pt-4 border-t">
+                    <FormDetailsDialog form={form} />
+                    
+                    {(form.status === 'pending' || form.status === 'in_progress') && (
+                      <>
+                        <Button
+                          onClick={() => handleStatusUpdate(form.application_id, 'approved')}
+                          className="flex items-center gap-2 bg-success hover:bg-success/90"
+                          size="sm"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          Aprovar Formulário
+                        </Button>
+                        <Button
+                          onClick={() => handleStatusUpdate(form.application_id, 'rejected')}
+                          variant="destructive"
+                          className="flex items-center gap-2"
+                          size="sm"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          Rejeitar Formulário
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))
@@ -430,6 +608,7 @@ export default function Forms() {
                   </div>
                   
                   <div className="flex gap-2 mt-6 pt-4 border-t">
+                    <FormDetailsDialog form={form} />
                     <Button
                       onClick={() => handleStatusUpdate(form.application_id, 'approved')}
                       className="flex items-center gap-2"
@@ -553,6 +732,10 @@ export default function Forms() {
                       </div>
                     )}
                   </div>
+                  
+                  <div className="flex gap-2 mt-6 pt-4 border-t">
+                    <FormDetailsDialog form={form} />
+                  </div>
                 </CardContent>
               </Card>
             ))
@@ -657,6 +840,10 @@ export default function Forms() {
                         </div>
                       </div>
                     )}
+                  </div>
+                  
+                  <div className="flex gap-2 mt-6 pt-4 border-t">
+                    <FormDetailsDialog form={form} />
                   </div>
                 </CardContent>
               </Card>
