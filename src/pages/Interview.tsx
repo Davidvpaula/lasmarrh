@@ -6,36 +6,64 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Calendar, CheckCircle, Clock, ChevronDown, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { z } from 'zod';
 
-// Schema de validação com Zod
-const interviewFormSchema = z.object({
-  motivation: z.string().trim().min(50, 'Resposta muito curta (mínimo 50 caracteres)').max(2000, 'Resposta muito longa'),
-  experience: z.string().trim().min(50, 'Resposta muito curta (mínimo 50 caracteres)').max(2000, 'Resposta muito longa'),
-  expectations: z.string().trim().min(30, 'Resposta muito curta (mínimo 30 caracteres)').max(2000, 'Resposta muito longa'),
-  whatsapp: z.string().trim().regex(/^\(\d{2}\)\s?\d{4,5}-?\d{4}$|^\d{10,11}$/, 'WhatsApp inválido. Use formato: (XX) XXXXX-XXXX'),
-  availability: z.record(z.string(), z.array(z.string())).refine(
+interface InterviewField {
+  id: string;
+  field_name: string;
+  field_label: string;
+  field_type: string;
+  field_options?: { options: string[] };
+  is_required: boolean;
+  placeholder?: string;
+  help_text?: string;
+  order_index: number;
+}
+
+// Schema de validação dinâmica será criada baseado nos campos
+const createDynamicSchema = (fields: InterviewField[]) => {
+  const schemaFields: any = {};
+  
+  fields.forEach(field => {
+    if (field.is_required) {
+      if (field.field_type === 'textarea' || field.field_type === 'text') {
+        schemaFields[field.field_name] = z.string().trim().min(1, `${field.field_label} é obrigatório`);
+      } else if (field.field_type === 'email') {
+        schemaFields[field.field_name] = z.string().email('E-mail inválido');
+      } else if (field.field_type === 'phone') {
+        schemaFields[field.field_name] = z.string().regex(/^\(\d{2}\)\s?\d{4,5}-?\d{4}$|^\d{10,11}$/, 'Telefone inválido');
+      } else {
+        schemaFields[field.field_name] = z.string().min(1, `${field.field_label} é obrigatório`);
+      }
+    } else {
+      schemaFields[field.field_name] = z.string().optional();
+    }
+  });
+  
+  // Availability permanece obrigatório
+  schemaFields.availability = z.record(z.string(), z.array(z.string())).refine(
     (data) => {
       const allSlots = Object.values(data).flat();
       return allSlots.length > 0;
     },
     { message: 'Selecione pelo menos um horário de disponibilidade' }
-  )
-});
+  );
+  
+  return z.object(schemaFields);
+};
 
 interface InterviewForm {
-  motivation: string;
-  experience: string;
-  expectations: string;
-  whatsapp: string;
+  [key: string]: any;
   availability: {
-    [day: string]: string[]; // Each day maps to an array of selected time slots
+    [day: string]: string[];
   };
 }
 
@@ -44,15 +72,12 @@ const Interview = () => {
   const navigate = useNavigate();
   const isMountedRef = useRef(true);
   const [form, setForm] = useState<InterviewForm>({
-    motivation: '',
-    experience: '',
-    expectations: '',
-    whatsapp: '',
     availability: {}
   });
   const [loading, setLoading] = useState(false);
   const [stageStatus, setStageStatus] = useState('');
   const [openPopovers, setOpenPopovers] = useState<Set<string>>(new Set());
+  const [interviewFields, setInterviewFields] = useState<InterviewField[]>([]);
 
   const DAYS_OF_WEEK = [
     { value: 'segunda', label: 'Segunda-feira' },
@@ -72,12 +97,41 @@ const Interview = () => {
 
   useEffect(() => {
     isMountedRef.current = true;
+    fetchInterviewFields();
     checkStageStatus();
     
     return () => {
       isMountedRef.current = false;
     };
   }, []);
+
+  const fetchInterviewFields = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('interview_fields')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index');
+
+      if (error) throw error;
+
+      const fields = (data || []).map(field => ({
+        ...field,
+        field_options: field.field_options as any
+      })) as InterviewField[];
+
+      setInterviewFields(fields);
+      
+      // Inicializar form com campos vazios
+      const initialForm: InterviewForm = { availability: {} };
+      fields?.forEach(field => {
+        initialForm[field.field_name] = '';
+      });
+      setForm(prev => ({ ...prev, ...initialForm }));
+    } catch (error) {
+      console.error('Erro ao carregar campos da entrevista:', error);
+    }
+  };
 
   const checkStageStatus = async () => {
     try {
@@ -167,8 +221,11 @@ const Interview = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Criar schema dinâmico baseado nos campos
+    const dynamicSchema = createDynamicSchema(interviewFields);
+    
     // Validar com Zod
-    const validationResult = interviewFormSchema.safeParse(form);
+    const validationResult = dynamicSchema.safeParse(form);
     if (!validationResult.success) {
       const errors = validationResult.error.flatten().fieldErrors;
       const firstError = Object.entries(errors)[0];
@@ -272,61 +329,94 @@ const Interview = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="motivation">
-                  Por que você tem interesse em trabalhar conosco?
-                </Label>
-                <Textarea
-                  id="motivation"
-                  value={form.motivation}
-                  onChange={(e) => setForm({ ...form, motivation: e.target.value })}
-                  placeholder="Descreva sua motivação..."
-                  required
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="experience">
-                  Fale sobre sua experiência profissional na área médica
-                </Label>
-                <Textarea
-                  id="experience"
-                  value={form.experience}
-                  onChange={(e) => setForm({ ...form, experience: e.target.value })}
-                  placeholder="Descreva sua experiência..."
-                  required
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="expectations">
-                  Você já teve alguma experiência com teleconsulta? Compartilha com a gente.
-                </Label>
-                <Textarea
-                  id="expectations"
-                  value={form.expectations}
-                  onChange={(e) => setForm({ ...form, expectations: e.target.value })}
-                  placeholder="Descreva sua experiência com teleconsulta..."
-                  required
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp">
-                  Adicione também seu número de WhatsApp para que a gente possa entrar em contato com você.
-                </Label>
-                <Input
-                  id="whatsapp"
-                  type="tel"
-                  value={form.whatsapp}
-                  onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
-                  placeholder="Ex: (11) 99999-9999"
-                  required
-                />
-              </div>
+              {/* Campos Dinâmicos da Entrevista */}
+              {interviewFields.map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <Label htmlFor={field.field_name}>
+                    {field.field_label}
+                    {field.is_required && <span className="text-destructive ml-1">*</span>}
+                  </Label>
+                  
+                  {field.field_type === 'textarea' && (
+                    <Textarea
+                      id={field.field_name}
+                      value={form[field.field_name] || ''}
+                      onChange={(e) => setForm({ ...form, [field.field_name]: e.target.value })}
+                      placeholder={field.placeholder || ''}
+                      required={field.is_required}
+                      className="min-h-[100px]"
+                    />
+                  )}
+                  
+                  {field.field_type === 'text' && (
+                    <Input
+                      id={field.field_name}
+                      value={form[field.field_name] || ''}
+                      onChange={(e) => setForm({ ...form, [field.field_name]: e.target.value })}
+                      placeholder={field.placeholder || ''}
+                      required={field.is_required}
+                    />
+                  )}
+                  
+                  {field.field_type === 'email' && (
+                    <Input
+                      id={field.field_name}
+                      type="email"
+                      value={form[field.field_name] || ''}
+                      onChange={(e) => setForm({ ...form, [field.field_name]: e.target.value })}
+                      placeholder={field.placeholder || ''}
+                      required={field.is_required}
+                    />
+                  )}
+                  
+                  {field.field_type === 'phone' && (
+                    <Input
+                      id={field.field_name}
+                      type="tel"
+                      value={form[field.field_name] || ''}
+                      onChange={(e) => setForm({ ...form, [field.field_name]: e.target.value })}
+                      placeholder={field.placeholder || ''}
+                      required={field.is_required}
+                    />
+                  )}
+                  
+                  {field.field_type === 'select' && field.field_options?.options && (
+                    <Select
+                      value={form[field.field_name] || ''}
+                      onValueChange={(value) => setForm({ ...form, [field.field_name]: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={field.placeholder || 'Selecione uma opção'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {field.field_options.options.map((option, index) => (
+                          <SelectItem key={index} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  
+                  {field.field_type === 'radio' && field.field_options?.options && (
+                    <RadioGroup
+                      value={form[field.field_name] || ''}
+                      onValueChange={(value) => setForm({ ...form, [field.field_name]: value })}
+                    >
+                      {field.field_options.options.map((option, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <RadioGroupItem value={option} id={`${field.field_name}-${index}`} />
+                          <Label htmlFor={`${field.field_name}-${index}`}>{option}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  )}
+                  
+                  {field.help_text && (
+                    <p className="text-xs text-muted-foreground">{field.help_text}</p>
+                  )}
+                </div>
+              ))}
 
               {/* Availability Section - Moved to the end */}
               <Card className="border-muted">

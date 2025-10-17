@@ -22,6 +22,7 @@ import Forms from './pages/admin/Forms';
 import AdminTraining from './pages/admin/Training';
 import EditTraining from './pages/admin/EditTraining';
 import EditForms from './pages/admin/EditForms';
+import EditInterview from './pages/admin/EditInterview';
 import SystemTesterPage from './pages/admin/SystemTester';
 import NotFound from './pages/NotFound';
 import { AuthProvider, useAuth } from './hooks/useAuth';
@@ -107,7 +108,7 @@ function AppContent() {
               <Route path="/admin/interviews" element={<Interviews />} />
               <Route path="/admin/forms" element={<Forms />} />
               <Route path="/admin/training" element={<AdminTraining />} />
-              <Route path="/admin/edit-interview" element={<div className="p-8">Em desenvolvimento</div>} />
+              <Route path="/admin/edit-interview" element={<EditInterview />} />
               <Route path="/admin/edit-forms" element={<EditForms />} />
               <Route path="/admin/edit-training" element={<EditTraining />} />
               <Route path="/admin/administrators" element={<Administrators />} />

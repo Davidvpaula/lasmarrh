@@ -213,6 +213,51 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_fields: {
+        Row: {
+          created_at: string
+          field_label: string
+          field_name: string
+          field_options: Json | null
+          field_type: string
+          help_text: string | null
+          id: string
+          is_active: boolean
+          is_required: boolean
+          order_index: number
+          placeholder: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_label: string
+          field_name: string
+          field_options?: Json | null
+          field_type: string
+          help_text?: string | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          order_index?: number
+          placeholder?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_label?: string
+          field_name?: string
+          field_options?: Json | null
+          field_type?: string
+          help_text?: string | null
+          id?: string
+          is_active?: boolean
+          is_required?: boolean
+          order_index?: number
+          placeholder?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
