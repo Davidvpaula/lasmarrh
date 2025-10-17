@@ -193,15 +193,18 @@ const Interview = () => {
 
       if (application) {
         // Save validated form data to stage_progress
-        await supabase
+        const { error: updateError } = await supabase
           .from('stage_progress')
           .update({
             status: 'in_progress',
-            started_at: new Date().toISOString(),
             notes: JSON.stringify(validationResult.data)
           })
           .eq('application_id', application.id)
           .eq('stage_number', 2);
+
+        if (updateError) {
+          throw updateError;
+        }
 
         toast({
           title: "Obrigado por querer fazer parte da nossa equipe!",

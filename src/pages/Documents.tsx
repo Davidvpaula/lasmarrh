@@ -257,15 +257,18 @@ const Documents = () => {
         }
 
         // Update stage progress with validated form data
-        await supabase
+        const { error: updateError } = await supabase
           .from('stage_progress')
           .update({
             status: 'in_progress',
-            started_at: new Date().toISOString(),
             notes: JSON.stringify({ form: validationResult.data, uploadedDocs: newUploadedDocs })
           })
           .eq('application_id', application.id)
           .eq('stage_number', 3);
+
+        if (updateError) {
+          throw updateError;
+        }
 
         toast({
           title: "Documentos enviados!",
