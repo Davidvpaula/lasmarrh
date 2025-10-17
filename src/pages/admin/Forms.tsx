@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FolderOpen, User, Calendar, CheckCircle, XCircle, FileText, Eye, Download } from "lucide-react";
+import { FolderOpen, User, Calendar, CheckCircle, XCircle, FileText, Eye, Download, FileSignature } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 
@@ -14,6 +14,7 @@ interface FormResponse {
   doctor_name: string;
   form_data: any;
   documents: any[];
+  signed_documents: any[];
   submitted_at: string;
   status: string;
 }
@@ -44,10 +45,25 @@ export default function Forms() {
 
       if (docsError) throw docsError;
 
+      // Buscar TODOS os documentos assinados
+      const { data: signedDocs, error: signedDocsError } = await supabase
+        .from('signed_documents')
+        .select(`
+          *,
+          signature_documents (
+            title,
+            description,
+            file_name
+          )
+        `);
+
+      if (signedDocsError) throw signedDocsError;
+
       // Extrair application_ids únicos de ambas as fontes
       const stageAppIds = (stageData || []).map(s => s.application_id);
       const docsAppIds = [...new Set((allDocs || []).map(d => d.application_id).filter(Boolean))];
-      const allAppIds = [...new Set([...stageAppIds, ...docsAppIds])];
+      const signedAppIds = [...new Set((signedDocs || []).map(d => d.application_id).filter(Boolean))];
+      const allAppIds = [...new Set([...stageAppIds, ...docsAppIds, ...signedAppIds])];
 
       if (allAppIds.length === 0) {
         setForms([]);
@@ -79,6 +95,7 @@ export default function Forms() {
       const formattedData: FormResponse[] = allAppIds.map(appId => {
         const stage = stageMap.get(appId);
         const relatedDocs = (allDocs || []).filter(doc => doc.application_id === appId);
+        const relatedSignedDocs = (signedDocs || []).filter(doc => doc.application_id === appId);
         const doctorId = appMap.get(appId);
         const doctorName = profileMap.get(doctorId) || 'Nome não informado';
         
@@ -92,6 +109,7 @@ export default function Forms() {
           doctor_name: doctorName,
           form_data: parsed,
           documents: relatedDocs,
+          signed_documents: relatedSignedDocs,
           submitted_at: stage?.created_at || relatedDocs[0]?.created_at || new Date().toISOString(),
           status: stage?.status || (relatedDocs.length > 0 ? 'in_progress' : 'pending')
         };
@@ -369,6 +387,72 @@ export default function Forms() {
                       <Badge key={docType} variant="secondary">
                         {docTypeLabels[docType] || docType}
                       </Badge>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Documentos Assinados */}
+            {form.signed_documents && form.signed_documents.length > 0 && (
+              <>
+                <Separator />
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <FileSignature className="h-5 w-5 text-primary" />
+                    Documentos Assinados ({form.signed_documents.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {form.signed_documents.map((signedDoc: any) => (
+                      <div key={signedDoc.id} className="border rounded-lg p-4 bg-muted/30 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="p-2 bg-success/10 rounded">
+                              <FileSignature className="h-5 w-5 text-success" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">
+                                {signedDoc.signature_documents?.title || 'Documento'}
+                              </p>
+                              {signedDoc.signature_documents?.description && (
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  {signedDoc.signature_documents.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant={signedDoc.status === 'signed' ? 'default' : 'secondary'} className="text-xs">
+                                  {signedDoc.status === 'signed' ? 'Assinado' : 'Pendente'}
+                                </Badge>
+                                {signedDoc.signed_at && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(signedDoc.signed_at).toLocaleDateString('pt-BR')} às {new Date(signedDoc.signed_at).toLocaleTimeString('pt-BR')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          {signedDoc.signed_file_path && (
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewDocument({ file_path: signedDoc.signed_file_path, file_name: signedDoc.signature_documents?.file_name || 'documento.pdf' })}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Ver
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDownloadDocument({ file_path: signedDoc.signed_file_path, file_name: signedDoc.signature_documents?.file_name || 'documento.pdf' })}
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                Baixar
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
