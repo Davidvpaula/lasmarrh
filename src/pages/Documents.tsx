@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, FileText, Upload, CheckCircle, X } from 'lucide-react';
+import { ArrowLeft, FileText, Upload, CheckCircle, X, Download, FileSignature } from 'lucide-react';
 import { z } from 'zod';
 
 // Schema de validação com Zod
@@ -35,6 +35,23 @@ interface DocumentForm {
   specialty: string;
   graduation_year: string;
   institution: string;
+}
+
+interface SignatureDocument {
+  id: string;
+  title: string;
+  description?: string;
+  file_url: string;
+  file_name: string;
+  is_required: boolean;
+}
+
+interface SignedDocument {
+  id: string;
+  signature_document_id: string;
+  status: string;
+  signed_at?: string;
+  signed_file_url?: string;
 }
 
 const REQUIRED_DOCUMENTS = [
@@ -65,10 +82,20 @@ const Documents = () => {
   const [uploadedDocs, setUploadedDocs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [stageStatus, setStageStatus] = useState('');
+  const [signatureDocuments, setSignatureDocuments] = useState<SignatureDocument[]>([]);
+  const [signedDocuments, setSignedDocuments] = useState<SignedDocument[]>([]);
+  const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [signatureFiles, setSignatureFiles] = useState<{ [key: string]: File }>({});
 
   useEffect(() => {
     checkStageStatus();
   }, []);
+
+  useEffect(() => {
+    if (applicationId) {
+      fetchSignatureDocuments();
+    }
+  }, [applicationId]);
 
   const checkStageStatus = async () => {
     try {
@@ -79,6 +106,8 @@ const Documents = () => {
         .single();
 
       if (application) {
+        setApplicationId(application.id);
+        
         const { data: stage } = await supabase
           .from('stage_progress')
           .select('status, notes')
@@ -123,6 +152,120 @@ const Documents = () => {
       }
     } catch (error) {
       console.error('Error checking stage status:', error);
+    }
+  };
+
+  const fetchSignatureDocuments = async () => {
+    try {
+      // Buscar documentos disponíveis para assinatura
+      const { data: docs, error: docsError } = await supabase
+        .from('signature_documents')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index');
+
+      if (docsError) throw docsError;
+
+      setSignatureDocuments(docs || []);
+
+      // Buscar documentos já assinados pelo candidato
+      if (applicationId) {
+        const { data: signed, error: signedError } = await supabase
+          .from('signed_documents')
+          .select('*')
+          .eq('application_id', applicationId);
+
+        if (signedError) throw signedError;
+
+        setSignedDocuments(signed || []);
+      }
+    } catch (error) {
+      console.error('Error fetching signature documents:', error);
+    }
+  };
+
+  const handleSignatureFileChange = (docId: string, file: File | null) => {
+    if (file) {
+      setSignatureFiles({ ...signatureFiles, [docId]: file });
+    } else {
+      const newFiles = { ...signatureFiles };
+      delete newFiles[docId];
+      setSignatureFiles(newFiles);
+    }
+  };
+
+  const handleSignatureUpload = async (docId: string) => {
+    const file = signatureFiles[docId];
+    
+    if (!file || !applicationId) return;
+
+    try {
+      // Validar tipo de arquivo (apenas PDF)
+      if (file.type !== 'application/pdf') {
+        toast({
+          title: "Erro",
+          description: "Apenas arquivos PDF são permitidos",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validar tamanho (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Erro",
+          description: "Arquivo muito grande. Máximo: 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const timestamp = Date.now();
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filePath = `signed-docs/${applicationId}/${timestamp}-${sanitizedFileName}`;
+
+      // Upload do arquivo
+      const { error: uploadError } = await supabase.storage
+        .from('candidate-documents')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('candidate-documents')
+        .getPublicUrl(filePath);
+
+      // Salvar registro do documento assinado
+      const { error: insertError } = await supabase
+        .from('signed_documents')
+        .upsert({
+          application_id: applicationId,
+          signature_document_id: docId,
+          signed_file_path: filePath,
+          signed_file_url: urlData.publicUrl,
+          signed_at: new Date().toISOString(),
+          status: 'signed',
+        });
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: "Sucesso",
+        description: "Documento assinado enviado com sucesso",
+      });
+
+      // Atualizar lista de documentos assinados
+      fetchSignatureDocuments();
+      
+      // Limpar arquivo selecionado
+      handleSignatureFileChange(docId, null);
+    } catch (error) {
+      console.error('Error uploading signed document:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao enviar documento assinado",
+        variant: "destructive",
+      });
     }
   };
 
@@ -471,6 +614,117 @@ const Documents = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Signature Documents - Available for Download and Signing */}
+          {signatureDocuments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <FileSignature className="h-6 w-6 text-primary" />
+                  <div>
+                    <CardTitle>Documentos para Assinatura</CardTitle>
+                    <CardDescription>
+                      Baixe, assine e envie os documentos obrigatórios
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {signatureDocuments.map((doc) => {
+                    const signedDoc = signedDocuments.find(sd => sd.signature_document_id === doc.id);
+                    const isSigned = signedDoc?.status === 'signed';
+
+                    return (
+                      <div key={doc.id} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium">{doc.title}</h4>
+                              {doc.is_required && (
+                                <span className="text-xs text-destructive">*Obrigatório</span>
+                              )}
+                              {isSigned && (
+                                <CheckCircle className="h-5 w-5 text-success" />
+                              )}
+                            </div>
+                            {doc.description && (
+                              <p className="text-sm text-muted-foreground">{doc.description}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                          {/* Download original document */}
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(doc.file_url, '_blank')}
+                              className="flex-shrink-0"
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Baixar Documento
+                            </Button>
+                            <span className="text-xs text-muted-foreground">{doc.file_name}</span>
+                          </div>
+
+                          {/* Upload signed document */}
+                          {!isSigned ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleSignatureFileChange(doc.id, e.target.files?.[0] || null)}
+                                className="flex-1"
+                              />
+                              {signatureFiles[doc.id] && (
+                                <>
+                                  <Button
+                                    type="button"
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => handleSignatureUpload(doc.id)}
+                                  >
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Enviar Assinado
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleSignatureFileChange(doc.id, null)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-success">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-sm">Documento assinado enviado em {new Date(signedDoc.signed_at!).toLocaleDateString()}</span>
+                              {signedDoc.signed_file_url && (
+                                <Button
+                                  type="button"
+                                  variant="link"
+                                  size="sm"
+                                  onClick={() => window.open(signedDoc.signed_file_url, '_blank')}
+                                >
+                                  Ver documento assinado
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Document Upload */}
           <Card>

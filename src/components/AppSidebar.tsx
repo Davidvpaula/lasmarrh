@@ -122,7 +122,6 @@ export function AppSidebar() {
         { title: "Editar Entrevista", url: "/admin/edit-interview", icon: MessageSquare },
         { title: "Editar Formulário", url: "/admin/edit-forms", icon: FolderOpen },
         { title: "Editar Treinamento", url: "/admin/edit-training", icon: GraduationCap },
-        { title: "Uploads", url: "/admin/uploads", icon: Upload },
         { title: "Configurações", url: "/admin/settings", icon: Settings },
         { title: "Sistema Tester", url: "/admin/system-tester", icon: Play },
       ]
