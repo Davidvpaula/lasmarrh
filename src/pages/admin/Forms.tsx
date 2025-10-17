@@ -27,46 +27,59 @@ export default function Forms() {
 
   const fetchForms = async () => {
     try {
-      // Buscar dados do formulário da etapa 3 (documentos)
+      // Buscar dados do formulário da etapa 3 (documentos) sem joins
       const { data: stageData, error: stageError } = await supabase
         .from('stage_progress')
-        .select(`
-          application_id,
-          notes,
-          status,
-          created_at,
-          applications!inner(
-            doctor_id,
-            profiles!applications_doctor_id_fkey(full_name)
-          )
-        `)
+        .select('application_id, notes, status, created_at')
         .eq('stage_number', 3)
         .not('notes', 'is', null);
 
       if (stageError) throw stageError;
 
-      // Buscar documentos relacionados
-      const applicationIds = stageData?.map(item => item.application_id) || [];
-      const { data: documentsData, error: documentsError } = await supabase
-        .from('documents')
-        .select('*')
-        .in('application_id', applicationIds);
+      const applicationIds = (stageData || []).map(item => item.application_id);
+      
+      // Buscar applications e profiles separadamente
+      const [appsRes, docsRes] = await Promise.all([
+        supabase
+          .from('applications')
+          .select('id, doctor_id')
+          .in('id', applicationIds.length ? applicationIds : ['00000000-0000-0000-0000-000000000000']),
+        supabase
+          .from('documents')
+          .select('*')
+          .in('application_id', applicationIds.length ? applicationIds : ['00000000-0000-0000-0000-000000000000'])
+      ]);
 
-      if (documentsError) throw documentsError;
+      if (appsRes.error) throw appsRes.error;
+      if (docsRes.error) throw docsRes.error;
 
-      const formattedData = stageData?.map(item => {
-        const relatedDocs = documentsData?.filter(doc => doc.application_id === item.application_id) || [];
-        const appData = item.applications as any;
+      const doctorIds = (appsRes.data || []).map(a => a.doctor_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', doctorIds.length ? doctorIds : ['00000000-0000-0000-0000-000000000000']);
+
+      if (profilesError) throw profilesError;
+
+      const appMap = new Map((appsRes.data || []).map(a => [a.id, a.doctor_id]));
+      const profileMap = new Map((profilesData || []).map(p => [p.user_id, p.full_name]));
+
+      const formattedData: FormResponse[] = (stageData || []).map(item => {
+        const relatedDocs = (docsRes.data || []).filter(doc => doc.application_id === item.application_id);
+        const doctorId = appMap.get(item.application_id);
+        const doctorName = profileMap.get(doctorId) || 'Nome não informado';
+        let parsed: any = {};
+        try { parsed = item.notes ? JSON.parse(item.notes) : {}; } catch {}
         
         return {
           application_id: item.application_id,
-          doctor_name: appData?.profiles?.full_name || 'Nome não informado',
-          form_data: item.notes ? JSON.parse(item.notes) : {},
+          doctor_name: doctorName,
+          form_data: parsed,
           documents: relatedDocs,
           submitted_at: item.created_at,
           status: item.status
         };
-      }) || [];
+      });
 
       setForms(formattedData);
     } catch (error) {
