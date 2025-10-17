@@ -35,8 +35,8 @@ function AppContent() {
   const currentPath = window.location.pathname;
   const isAuthPage = currentPath === '/auth' || currentPath === '/admin/auth' || currentPath === '/professional/auth' || currentPath === '/';
 
-  // Show loading while authenticating or loading profile
-  if (loading || (isAuthenticated && !profile)) {
+  // Show loading while authenticating
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
