@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Play, CheckCircle, Clock, Award, FileSignature, ExternalLink, AlertTriangle, Youtube } from 'lucide-react';
 
 interface TrainingVideo {
@@ -25,62 +26,83 @@ interface VideoProgress {
   watched_percentage?: number;
 }
 
-// Mock data para desenvolvimento
-const mockVideos: TrainingVideo[] = [
-  {
-    id: 'video-001',
-    title: 'Introdução à Telemedicina',
-    description: 'Conceitos básicos e regulamentações da telemedicina no Brasil',
-    video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    duration_minutes: 15,
-    order_index: 1
-  },
-  {
-    id: 'video-002',
-    title: 'Segurança e Privacidade',
-    description: 'Protocolos de segurança e proteção de dados do paciente',
-    video_url: 'https://www.youtube.com/watch?v=9bZkp7q19f0',
-    duration_minutes: 20,
-    order_index: 2
-  },
-  {
-    id: 'video-003',
-    title: 'Uso da Plataforma',
-    description: 'Como utilizar as ferramentas da plataforma de telemedicina',
-    video_url: 'https://www.youtube.com/watch?v=kJQP7kiw5Fk',
-    duration_minutes: 25,
-    order_index: 3
-  }
-];
-
 const ProfessionalTraining = () => {
   const [videos, setVideos] = useState<TrainingVideo[]>([]);
   const [progress, setProgress] = useState<VideoProgress[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [stageStatus, setStageStatus] = useState('in_progress');
   const [watchingVideo, setWatchingVideo] = useState<string | null>(null);
   const [confirmingSignature, setConfirmingSignature] = useState<string | null>(null);
+  const [applicationId, setApplicationId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulando carregamento para desenvolvimento
-    setVideos(mockVideos);
-    setProgress([
-      {
-        video_id: 'video-001',
-        started_at: '2024-01-15T10:00:00Z',
-        completed_at: '2024-01-15T10:15:00Z',
-        watch_time_minutes: 15,
-        watched_percentage: 100
-      },
-      {
-        video_id: 'video-002',
-        started_at: '2024-01-16T09:00:00Z',
-        completed_at: null,
-        watch_time_minutes: 10,
-        watched_percentage: 50
-      }
-    ]);
+    fetchVideosAndProgress();
   }, []);
+
+  const fetchVideosAndProgress = async () => {
+    try {
+      // Buscar vídeos ativos do banco
+      const { data: videosData, error: videosError } = await supabase
+        .from('training_videos')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index');
+
+      if (videosError) throw videosError;
+      setVideos(videosData || []);
+
+      // Buscar application_id do profissional
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: appData } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('doctor_id', user.id)
+        .single();
+
+      if (appData) {
+        setApplicationId(appData.id);
+
+        // Buscar progresso dos vídeos
+        const { data: progressData, error: progressError } = await supabase
+          .from('training_progress')
+          .select('*')
+          .eq('application_id', appData.id);
+
+        if (progressError) throw progressError;
+        
+        setProgress((progressData || []).map(p => ({
+          video_id: p.video_id,
+          started_at: p.started_at,
+          completed_at: p.completed_at,
+          watch_time_minutes: p.watch_time_minutes || 0,
+          watched_percentage: p.completed_at ? 100 : ((p.watch_time_minutes || 0) / (videosData?.find(v => v.id === p.video_id)?.duration_minutes || 1)) * 100
+        })));
+
+        // Buscar status da stage 4
+        const { data: stageData } = await supabase
+          .from('stage_progress')
+          .select('status')
+          .eq('application_id', appData.id)
+          .eq('stage_number', 4)
+          .single();
+
+        if (stageData) {
+          setStageStatus(stageData.status);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao carregar vídeos de treinamento",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getVideoProgress = (videoId: string) => {
     return progress.find(p => p.video_id === videoId);
@@ -159,18 +181,49 @@ const ProfessionalTraining = () => {
   };
 
   const startVideo = async (videoId: string) => {
+    if (!applicationId) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível identificar sua aplicação",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const existingProgress = getVideoProgress(videoId);
     
     if (!existingProgress) {
-      // Novo progresso
-      const newProgress: VideoProgress = {
-        video_id: videoId,
-        started_at: new Date().toISOString(),
-        completed_at: null,
-        watch_time_minutes: 0,
-        watched_percentage: 0
-      };
-      setProgress([...progress, newProgress]);
+      // Criar novo progresso no banco
+      try {
+        const { error } = await supabase
+          .from('training_progress')
+          .insert({
+            application_id: applicationId,
+            video_id: videoId,
+            started_at: new Date().toISOString(),
+            watch_time_minutes: 0
+          });
+
+        if (error) throw error;
+
+        // Novo progresso local
+        const newProgress: VideoProgress = {
+          video_id: videoId,
+          started_at: new Date().toISOString(),
+          completed_at: null,
+          watch_time_minutes: 0,
+          watched_percentage: 0
+        };
+        setProgress([...progress, newProgress]);
+      } catch (error) {
+        console.error('Erro ao iniciar vídeo:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao registrar início do vídeo",
+          variant: "destructive"
+        });
+        return;
+      }
     }
     
     // Iniciar simulação de progresso
@@ -183,7 +236,7 @@ const ProfessionalTraining = () => {
   };
 
   const confirmSignVideo = async () => {
-    if (!confirmingSignature) return;
+    if (!confirmingSignature || !applicationId) return;
     
     const video = videos.find(v => v.id === confirmingSignature);
     if (!video) return;
@@ -197,43 +250,72 @@ const ProfessionalTraining = () => {
       return;
     }
 
-    // Marcar como completo
-    const updatedProgress = progress.map(p => 
-      p.video_id === confirmingSignature 
-        ? { ...p, completed_at: new Date().toISOString(), watch_time_minutes: video.duration_minutes, watched_percentage: 100 }
-        : p
-    );
-    
-    // Se não existir progresso, criar um completo
-    if (!progress.find(p => p.video_id === confirmingSignature)) {
-      updatedProgress.push({
-        video_id: confirmingSignature,
-        started_at: new Date().toISOString(),
-        completed_at: new Date().toISOString(),
-        watch_time_minutes: video.duration_minutes,
-        watched_percentage: 100
+    try {
+      // Atualizar no banco como completo
+      const { error } = await supabase
+        .from('training_progress')
+        .upsert({
+          application_id: applicationId,
+          video_id: confirmingSignature,
+          started_at: getVideoProgress(confirmingSignature)?.started_at || new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+          watch_time_minutes: video.duration_minutes
+        });
+
+      if (error) throw error;
+
+      // Marcar como completo localmente
+      const updatedProgress = progress.map(p => 
+        p.video_id === confirmingSignature 
+          ? { ...p, completed_at: new Date().toISOString(), watch_time_minutes: video.duration_minutes, watched_percentage: 100 }
+          : p
+      );
+      
+      // Se não existir progresso, criar um completo
+      if (!progress.find(p => p.video_id === confirmingSignature)) {
+        updatedProgress.push({
+          video_id: confirmingSignature,
+          started_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+          watch_time_minutes: video.duration_minutes,
+          watched_percentage: 100
+        });
+      }
+      
+      setProgress(updatedProgress);
+      setConfirmingSignature(null);
+      
+      // Verificar se todos os vídeos foram assinados
+      const allCompleted = videos.every(v => {
+        const prog = updatedProgress.find(p => p.video_id === v.id);
+        return prog?.completed_at || v.id === confirmingSignature;
       });
-    }
-    
-    setProgress(updatedProgress);
-    setConfirmingSignature(null);
-    
-    // Verificar se todos os vídeos foram assinados
-    const allCompleted = videos.every(v => {
-      const prog = updatedProgress.find(p => p.video_id === v.id);
-      return prog?.completed_at || v.id === confirmingSignature;
-    });
 
       if (allCompleted) {
+        // Atualizar stage_progress para completado
+        await supabase
+          .from('stage_progress')
+          .update({ status: 'in_progress' })
+          .eq('application_id', applicationId)
+          .eq('stage_number', 4);
+
         setStageStatus('completed');
         toast({
           title: "🎉 Todos os vídeos foram assistidos!",
-          description: "Clique no botão 'Finalizar Treinamento' para concluir sua capacitação.",
+          description: "Seu treinamento foi concluído com sucesso!",
         });
       } else {
+        toast({
+          title: "✅ Vídeo Assinado!",
+          description: `"${video.title}" foi assinado com sucesso. Treinamento validado!`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao assinar vídeo:', error);
       toast({
-        title: "✅ Vídeo Assinado!",
-        description: `"${video.title}" foi assinado com sucesso. Treinamento validado!`,
+        title: "Erro",
+        description: "Falha ao registrar assinatura do vídeo",
+        variant: "destructive"
       });
     }
   };
