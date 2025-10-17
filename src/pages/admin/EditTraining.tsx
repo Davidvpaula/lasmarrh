@@ -45,6 +45,20 @@ export default function Training() {
 
   useEffect(() => {
     fetchVideos();
+
+    // Configurar real-time para atualizações automáticas
+    const channel = supabase
+      .channel('training-videos-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'training_videos' },
+        () => fetchVideos()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchVideos = async () => {

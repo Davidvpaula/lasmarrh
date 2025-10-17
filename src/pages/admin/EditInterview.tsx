@@ -61,6 +61,20 @@ export default function EditInterview() {
 
   useEffect(() => {
     fetchFields();
+
+    // Configurar real-time para atualizações automáticas
+    const channel = supabase
+      .channel('interview-fields-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'interview_fields' },
+        () => fetchFields()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchFields = async () => {

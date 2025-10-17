@@ -85,6 +85,25 @@ export default function EditForms() {
 
   useEffect(() => {
     fetchData();
+
+    // Configurar real-time para atualizações automáticas
+    const channel = supabase
+      .channel('form-fields-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'form_fields' },
+        () => fetchData()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'signature_documents' },
+        () => fetchData()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchData = async () => {

@@ -24,6 +24,25 @@ export default function Interviews() {
 
   useEffect(() => {
     fetchInterviews();
+
+    // Configurar real-time para atualizações automáticas
+    const channel = supabase
+      .channel('interviews-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'stage_progress', filter: 'stage_number=eq.2' },
+        () => fetchInterviews()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'applications' },
+        () => fetchInterviews()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchInterviews = async () => {

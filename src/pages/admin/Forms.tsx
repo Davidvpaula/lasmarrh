@@ -26,6 +26,30 @@ export default function Forms() {
 
   useEffect(() => {
     fetchForms();
+
+    // Configurar real-time para atualizações automáticas
+    const channel = supabase
+      .channel('forms-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'stage_progress' },
+        () => fetchForms()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'documents' },
+        () => fetchForms()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'signed_documents' },
+        () => fetchForms()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchForms = async () => {
