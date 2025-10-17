@@ -166,7 +166,29 @@ const Documents = () => {
 
       if (docsError) throw docsError;
 
-      setSignatureDocuments(docs || []);
+      // Gerar URLs assinadas para download (válidas por 1 hora)
+      const docsWithSignedUrls = await Promise.all((docs || []).map(async (doc) => {
+        try {
+          const { data: signedUrl, error: urlError } = await supabase.storage
+            .from('candidate-documents')
+            .createSignedUrl(doc.file_path, 3600); // 1 hora de validade
+
+          if (urlError) {
+            console.error('Error creating signed URL:', urlError);
+            return doc;
+          }
+
+          return {
+            ...doc,
+            file_url: signedUrl.signedUrl
+          };
+        } catch (error) {
+          console.error('Error processing document:', error);
+          return doc;
+        }
+      }));
+
+      setSignatureDocuments(docsWithSignedUrls);
 
       // Buscar documentos já assinados pelo candidato
       if (applicationId) {
