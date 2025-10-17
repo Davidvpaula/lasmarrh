@@ -230,29 +230,6 @@ export default function Forms() {
       }
     };
 
-    const handleViewDocument = async (doc: any) => {
-      try {
-        // Obter URL assinada temporária (válida por 1 hora)
-        const { data, error } = await supabase.storage
-          .from('candidate-documents')
-          .createSignedUrl(doc.file_path, 3600);
-
-        if (error) {
-          throw error;
-        }
-
-        // Abrir em nova aba
-        window.open(data.signedUrl, '_blank');
-      } catch (error) {
-        console.error('View error:', error);
-        toast({
-          title: "Erro ao visualizar",
-          description: "Não foi possível visualizar o documento.",
-          variant: "destructive",
-        });
-      }
-    };
-
     return (
       <Dialog>
         <DialogTrigger asChild>
@@ -350,18 +327,10 @@ export default function Forms() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleViewDocument(doc)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Ver
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
                             onClick={() => handleDownloadDocument(doc)}
                           >
                             <Download className="h-4 w-4 mr-1" />
-                            Baixar
+                            Download
                           </Button>
                         </div>
                       </div>
@@ -432,24 +401,14 @@ export default function Forms() {
                             </div>
                           </div>
                           {signedDoc.signed_file_path && (
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewDocument({ file_path: signedDoc.signed_file_path, file_name: signedDoc.signature_documents?.file_name || 'documento.pdf' })}
-                              >
-                                <Eye className="h-4 w-4 mr-1" />
-                                Ver
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDownloadDocument({ file_path: signedDoc.signed_file_path, file_name: signedDoc.signature_documents?.file_name || 'documento.pdf' })}
-                              >
-                                <Download className="h-4 w-4 mr-1" />
-                                Baixar
-                              </Button>
-                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownloadDocument({ file_path: signedDoc.signed_file_path, file_name: signedDoc.signature_documents?.file_name || 'documento.pdf' })}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
                           )}
                         </div>
                       </div>
@@ -590,14 +549,39 @@ export default function Forms() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => {
-                                    toast({
-                                      title: "Documento",
-                                      description: `Visualizando ${docTypeLabels[doc.document_type] || doc.document_type}`,
-                                    });
+                                  onClick={async () => {
+                                    try {
+                                      const { data, error } = await supabase.storage
+                                        .from('candidate-documents')
+                                        .download(doc.file_path);
+
+                                      if (error) throw error;
+
+                                      const url = URL.createObjectURL(data);
+                                      const link = document.createElement('a');
+                                      link.href = url;
+                                      link.download = doc.file_name;
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                      URL.revokeObjectURL(url);
+
+                                      toast({
+                                        title: "Download concluído",
+                                        description: `${doc.file_name} foi baixado com sucesso.`,
+                                      });
+                                    } catch (error) {
+                                      console.error('Download error:', error);
+                                      toast({
+                                        title: "Erro ao baixar",
+                                        description: "Não foi possível baixar o documento.",
+                                        variant: "destructive",
+                                      });
+                                    }
                                   }}
                                 >
-                                  Ver
+                                  <Download className="h-4 w-4 mr-1" />
+                                  Download
                                 </Button>
                               </div>
                             );
