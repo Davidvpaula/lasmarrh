@@ -27,57 +27,71 @@ export default function Forms() {
 
   const fetchForms = async () => {
     try {
-      // Buscar dados do formulário da etapa 3 (documentos) sem joins
+      // Buscar stage_progress da etapa 3
       const { data: stageData, error: stageError } = await supabase
         .from('stage_progress')
         .select('application_id, notes, status, created_at')
-        .eq('stage_number', 3)
-        .not('notes', 'is', null);
+        .eq('stage_number', 3);
 
       if (stageError) throw stageError;
 
-      const applicationIds = (stageData || []).map(item => item.application_id);
-      
-      // Buscar applications e profiles separadamente
-      const [appsRes, docsRes] = await Promise.all([
-        supabase
-          .from('applications')
-          .select('id, doctor_id')
-          .in('id', applicationIds.length ? applicationIds : ['00000000-0000-0000-0000-000000000000']),
-        supabase
-          .from('documents')
-          .select('*')
-          .in('application_id', applicationIds.length ? applicationIds : ['00000000-0000-0000-0000-000000000000'])
-      ]);
+      // Buscar TODOS os documentos (mesmo sem stage_progress)
+      const { data: allDocs, error: docsError } = await supabase
+        .from('documents')
+        .select('*');
 
-      if (appsRes.error) throw appsRes.error;
-      if (docsRes.error) throw docsRes.error;
+      if (docsError) throw docsError;
 
-      const doctorIds = (appsRes.data || []).map(a => a.doctor_id);
+      // Extrair application_ids únicos de ambas as fontes
+      const stageAppIds = (stageData || []).map(s => s.application_id);
+      const docsAppIds = [...new Set((allDocs || []).map(d => d.application_id).filter(Boolean))];
+      const allAppIds = [...new Set([...stageAppIds, ...docsAppIds])];
+
+      if (allAppIds.length === 0) {
+        setForms([]);
+        setLoading(false);
+        return;
+      }
+
+      // Buscar applications e profiles
+      const { data: appsData, error: appsError } = await supabase
+        .from('applications')
+        .select('id, doctor_id')
+        .in('id', allAppIds);
+
+      if (appsError) throw appsError;
+
+      const doctorIds = (appsData || []).map(a => a.doctor_id);
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, full_name')
-        .in('user_id', doctorIds.length ? doctorIds : ['00000000-0000-0000-0000-000000000000']);
+        .in('user_id', doctorIds);
 
       if (profilesError) throw profilesError;
 
-      const appMap = new Map((appsRes.data || []).map(a => [a.id, a.doctor_id]));
+      const appMap = new Map((appsData || []).map(a => [a.id, a.doctor_id]));
       const profileMap = new Map((profilesData || []).map(p => [p.user_id, p.full_name]));
+      const stageMap = new Map((stageData || []).map(s => [s.application_id, s]));
 
-      const formattedData: FormResponse[] = (stageData || []).map(item => {
-        const relatedDocs = (docsRes.data || []).filter(doc => doc.application_id === item.application_id);
-        const doctorId = appMap.get(item.application_id);
+      // Montar formattedData para cada application_id
+      const formattedData: FormResponse[] = allAppIds.map(appId => {
+        const stage = stageMap.get(appId);
+        const relatedDocs = (allDocs || []).filter(doc => doc.application_id === appId);
+        const doctorId = appMap.get(appId);
         const doctorName = profileMap.get(doctorId) || 'Nome não informado';
-        let parsed: any = {};
-        try { parsed = item.notes ? JSON.parse(item.notes) : {}; } catch {}
         
+        let parsed: any = {};
+        if (stage?.notes) {
+          try { parsed = JSON.parse(stage.notes); } catch {}
+        }
+
         return {
-          application_id: item.application_id,
+          application_id: appId,
           doctor_name: doctorName,
           form_data: parsed,
           documents: relatedDocs,
-          submitted_at: item.created_at,
-          status: item.status
+          submitted_at: stage?.created_at || relatedDocs[0]?.created_at || new Date().toISOString(),
+          status: stage?.status || (relatedDocs.length > 0 ? 'in_progress' : 'pending')
         };
       });
 
