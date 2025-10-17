@@ -97,17 +97,22 @@ const UploadsManagementTab = () => {
         .select(`
           id,
           doctor_id,
-          current_stage,
-          profiles!applications_doctor_id_fkey (
-            full_name,
-            email,
-            crm,
-            phone
-          )
+          current_stage
         `)
         .order('created_at', { ascending: false });
 
       if (appsError) throw appsError;
+
+      // Buscar perfis dos médicos
+      const doctorIds = applicationsData?.map(app => app.doctor_id) || [];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, email, crm, phone')
+        .in('user_id', doctorIds);
+
+      if (profilesError) throw profilesError;
+
+      const profileMap = new Map((profilesData || []).map((p: any) => [p.user_id, p]));
 
       // Buscar documentos para todas as applications
       const applicationIds = applicationsData?.map(app => app.id) || [];

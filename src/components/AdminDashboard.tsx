@@ -44,42 +44,67 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      const { data: applicationData, error: appError } = await supabase
+      // Buscar applications, perfis e progresso sem joins implícitos (evita erros de relação)
+      const { data: apps, error: appError } = await supabase
         .from('applications')
-        .select(`
-          *,
-          profiles!applications_doctor_id_fkey (
-            full_name,
-            email,
-            crm,
-            phone
-          ),
-          stage_progress (
-            stage_number,
-            status,
-            started_at,
-            completed_at,
-            notes
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (appError) throw appError;
 
-      const transformedApplications: DoctorApplication[] = applicationData?.map(app => ({
-        id: app.id,
-        doctor_id: app.doctor_id,
-        status: app.status,
-        current_stage: app.current_stage,
-        created_at: app.created_at,
-        profiles: {
-          full_name: app.profiles?.full_name || 'Nome não informado',
-          email: app.profiles?.email || 'Email não informado',
-          crm: app.profiles?.crm || '',
-          phone: app.profiles?.phone || ''
-        },
-        stage_progress: Array.isArray(app.stage_progress) ? app.stage_progress : []
-      })) || [];
+      const doctorIds = (apps || []).map((a: any) => a.doctor_id).filter(Boolean);
+      const appIds = (apps || []).map((a: any) => a.id);
+
+      const [profilesRes, stagesRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('user_id, full_name, email, crm, phone')
+          .in('user_id', doctorIds.length ? doctorIds : ['00000000-0000-0000-0000-000000000000']),
+        supabase
+          .from('stage_progress')
+          .select('application_id, stage_number, status, completed_at, notes')
+          .in('application_id', appIds.length ? appIds : ['00000000-0000-0000-0000-000000000000'])
+      ]);
+
+      if (profilesRes.error) throw profilesRes.error;
+      if (stagesRes.error) throw stagesRes.error;
+
+      const profileMap = new Map((profilesRes.data || []).map((p: any) => [p.user_id, p]));
+      const stagesByApp = new Map<string, any[]>();
+      (stagesRes.data || []).forEach((s: any) => {
+        const arr = stagesByApp.get(s.application_id) || [];
+        arr.push({
+          stage_number: s.stage_number,
+          status: s.status,
+          completed_at: s.completed_at,
+          notes: s.notes || ''
+        });
+        stagesByApp.set(s.application_id, arr);
+      });
+
+      const applicationData = apps || [];
+
+
+      if (appError) throw appError;
+
+      const transformedApplications: DoctorApplication[] = (applicationData as any[])?.map((app: any) => {
+        const p = profileMap.get(app.doctor_id) || {};
+        const stages = stagesByApp.get(app.id) || [];
+        return {
+          id: app.id,
+          doctor_id: app.doctor_id,
+          status: app.status,
+          current_stage: app.current_stage,
+          created_at: app.created_at,
+          profiles: {
+            full_name: p.full_name || 'Nome não informado',
+            email: p.email || 'Email não informado',
+            crm: p.crm || '',
+            phone: p.phone || ''
+          },
+          stage_progress: stages
+        };
+      }) || [];
 
       setApplications(transformedApplications);
     } catch (error) {

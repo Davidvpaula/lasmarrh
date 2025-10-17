@@ -314,7 +314,7 @@ export const SystemTester = () => {
     try {
       const { data, error } = await supabase
         .from('applications')
-        .select('*, profiles(*)')
+        .select('*')
         .limit(5);
       
       if (error) throw error;
