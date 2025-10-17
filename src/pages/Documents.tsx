@@ -130,6 +130,7 @@ const Documents = () => {
     await supabase
       .from('documents')
       .insert({
+        application_id: applicationId,
         document_type: docType,
         file_path: `documents/${fileName}`,
         file_name: file.name,
