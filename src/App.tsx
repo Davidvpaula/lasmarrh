@@ -35,8 +35,16 @@ function AppContent() {
   const currentPath = window.location.pathname;
   const isAuthPage = currentPath === '/auth' || currentPath === '/admin/auth' || currentPath === '/professional/auth' || currentPath === '/';
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  // Show loading while authenticating or loading profile
+  if (loading || (isAuthenticated && !profile)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
   }
 
   // If not authenticated, check which login to show based on path
@@ -67,8 +75,8 @@ function AppContent() {
   }
 
   // If authenticated but trying to access auth pages, redirect based on role
-  if (isAuthPage && isAuthenticated && profile) {
-    if (profile.role === 'admin') {
+  if (isAuthPage && isAuthenticated) {
+    if (profile?.role === 'admin') {
       window.location.href = '/dashboard/admin';
       return null;
     } else {

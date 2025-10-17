@@ -45,6 +45,10 @@ const ProfessionalAuth = () => {
           variant: "destructive",
         });
       } else if (data?.user) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Redirecionando...",
+        });
         // Verificar role e redirecionar adequadamente
         setTimeout(async () => {
           try {
@@ -70,7 +74,7 @@ const ProfessionalAuth = () => {
             // Em caso de erro, redirecionar para dashboard profissional por padrão
             navigate('/dashboard/professional');
           }
-        }, 1000);
+        }, 500);
       }
     } catch (error) {
       toast({
