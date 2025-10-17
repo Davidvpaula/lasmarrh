@@ -124,15 +124,15 @@ const UploadsManagementTab = () => {
       if (docsError) throw docsError;
 
       // Transformar dados para o formato esperado
-      const formattedCandidates: Candidate[] = applicationsData?.map(app => {
-        const relatedDocs = documentsData?.filter(doc => doc.application_id === app.id) || [];
-        
+      const formattedCandidates: Candidate[] = (applicationsData || []).map(app => {
+        const relatedDocs = (documentsData || []).filter(doc => doc.application_id === app.id);
+        const p = profileMap.get(app.doctor_id) || {};
         return {
           id: app.id,
-          name: app.profiles?.full_name || 'Nome não informado',
-          email: app.profiles?.email || 'Email não informado',
-          crm: app.profiles?.crm || 'CRM não informado',
-          phone: app.profiles?.phone || 'Telefone não informado',
+          name: p.full_name || 'Nome não informado',
+          email: p.email || 'Email não informado',
+          crm: p.crm || 'CRM não informado',
+          phone: p.phone || 'Telefone não informado',
           current_stage: app.current_stage,
           documents: relatedDocs.map(doc => ({
             id: doc.id,
@@ -143,7 +143,7 @@ const UploadsManagementTab = () => {
             status: 'pending' as 'pending' | 'approved' | 'rejected'
           }))
         };
-      }) || [];
+      });
 
       setCandidates(formattedCandidates);
     } catch (error) {

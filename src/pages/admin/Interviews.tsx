@@ -26,33 +26,45 @@ export default function Interviews() {
 
   const fetchInterviews = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar entrevistas (stage 2) sem joins implícitos
+      const { data: stages, error } = await supabase
         .from('stage_progress')
-        .select(`
-          application_id,
-          notes,
-          status,
-          created_at,
-          applications!inner(
-            doctor_id,
-            profiles!applications_doctor_id_fkey(full_name)
-          )
-        `)
+        .select('application_id, notes, status, created_at')
         .eq('stage_number', 2)
         .not('notes', 'is', null);
 
       if (error) throw error;
 
-      const formattedData = data?.map(item => {
-        const appData = item.applications as any;
+      const appIds = (stages || []).map((s: any) => s.application_id);
+      const { data: appsRes, error: appsErr } = await supabase
+        .from('applications')
+        .select('id, doctor_id')
+        .in('id', appIds.length ? appIds : ['00000000-0000-0000-0000-000000000000']);
+      if (appsErr) throw appsErr;
+
+      const doctorIds = (appsRes || []).map((a: any) => a.doctor_id);
+      const { data: profilesRes, error: profilesErr } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', doctorIds.length ? doctorIds : ['00000000-0000-0000-0000-000000000000']);
+      if (profilesErr) throw profilesErr;
+
+      const appMap = new Map((appsRes || []).map((a: any) => [a.id, a.doctor_id]));
+      const profileMap = new Map((profilesRes || []).map((p: any) => [p.user_id, p.full_name]));
+
+      const formattedData: InterviewResponse[] = (stages || []).map((item: any) => {
+        const doctorId = appMap.get(item.application_id);
+        const doctorName = profileMap.get(doctorId) || 'Nome não informado';
+        let parsed: any = {};
+        try { parsed = item.notes ? JSON.parse(item.notes) : {}; } catch {}
         return {
           application_id: item.application_id,
-          doctor_name: appData?.profiles?.full_name || 'Nome não informado',
-          responses: item.notes ? JSON.parse(item.notes) : {},
+          doctor_name: doctorName,
+          responses: parsed,
           submitted_at: item.created_at,
-          status: item.status
+          status: item.status,
         };
-      }) || [];
+      });
 
       setInterviews(formattedData);
     } catch (error) {
@@ -86,8 +98,7 @@ export default function Interviews() {
         .from('stage_progress')
         .update({ 
           status: newStatus,
-          completed_at: new Date().toISOString(),
-          approved_by: newStatus === 'approved' ? (await supabase.auth.getUser()).data.user?.id : null
+          completed_at: new Date().toISOString()
         })
         .eq('application_id', applicationId)
         .eq('stage_number', 2);
