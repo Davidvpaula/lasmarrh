@@ -165,28 +165,6 @@ const Training = () => {
         .eq('video_id', videoId);
 
       await loadTrainingData();
-      
-      // Check if all videos are completed
-      const allCompleted = videos.every(v => {
-        const prog = progress.find(p => p.video_id === v.id);
-        return prog?.completed_at || v.id === videoId;
-      });
-
-      if (allCompleted) {
-        await supabase
-          .from('stage_progress')
-          .update({
-            status: 'completed',
-            completed_at: new Date().toISOString()
-          })
-          .eq('application_id', applicationId)
-          .eq('stage_number', 4);
-
-        toast({
-          title: "Treinamento Concluído!",
-          description: "Você completou todos os vídeos obrigatórios.",
-        });
-      }
 
       toast({
         title: "Vídeo Concluído!",
