@@ -195,40 +195,42 @@ export default function Forms() {
       institution: 'Instituição de Ensino'
     };
 
-    const handleDownloadDocument = async (doc: any) => {
-      try {
-        // Baixar arquivo do storage
-        const { data, error } = await supabase.storage
-          .from('candidate-documents')
-          .download(doc.file_path);
+  const handleDownloadDocument = async (doc: any) => {
+    try {
+      // Obter URL assinada temporária (válida por 1 hora) para download
+      const { data: signedUrlData, error: urlError } = await supabase.storage
+        .from('candidate-documents')
+        .createSignedUrl(doc.file_path, 3600);
 
-        if (error) {
-          throw error;
-        }
+      if (urlError) throw urlError;
 
-        // Criar URL blob e fazer download
-        const url = URL.createObjectURL(data);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = doc.file_name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+      // Fazer download usando fetch
+      const response = await fetch(signedUrlData.signedUrl);
+      if (!response.ok) throw new Error('Falha no download');
 
-        toast({
-          title: "Download concluído",
-          description: `${doc.file_name} foi baixado com sucesso.`,
-        });
-      } catch (error) {
-        console.error('Download error:', error);
-        toast({
-          title: "Erro ao baixar",
-          description: "Não foi possível baixar o documento.",
-          variant: "destructive",
-        });
-      }
-    };
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.file_name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download concluído",
+        description: `${doc.file_name} foi baixado com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Erro ao baixar",
+        description: "Não foi possível baixar o documento.",
+        variant: "destructive",
+      });
+    }
+  };
 
     return (
       <Dialog>
