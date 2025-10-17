@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, User, Calendar, CheckCircle, XCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { MessageSquare, User, Calendar, CheckCircle, XCircle, Eye, Clock, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 
 interface InterviewResponse {
   application_id: string;
@@ -77,6 +79,148 @@ export default function Interviews() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const DAYS_OF_WEEK_MAP: { [key: string]: string } = {
+    segunda: 'Segunda-feira',
+    terca: 'Terça-feira',
+    quarta: 'Quarta-feira',
+    quinta: 'Quinta-feira',
+    sexta: 'Sexta-feira',
+    sabado: 'Sábado',
+    domingo: 'Domingo'
+  };
+
+  const InterviewDetailsDialog = ({ interview }: { interview: InterviewResponse }) => {
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Eye className="h-4 w-4" />
+            Ver Detalhes Completos
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Entrevista de {interview.doctor_name}
+            </DialogTitle>
+            <DialogDescription>
+              Enviada em {new Date(interview.submitted_at).toLocaleDateString('pt-BR')} às {new Date(interview.submitted_at).toLocaleTimeString('pt-BR')}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 mt-4">
+            {/* Status Badge */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Status:</span>
+              <Badge variant={
+                interview.status === 'approved' ? 'default' :
+                interview.status === 'rejected' ? 'destructive' : 'secondary'
+              }>
+                {interview.status === 'approved' ? 'Aprovada' :
+                 interview.status === 'rejected' ? 'Rejeitada' : 
+                 interview.status === 'in_progress' ? 'Em Andamento' : 'Pendente'}
+              </Badge>
+            </div>
+
+            <Separator />
+
+            {/* Respostas da Entrevista */}
+            <div className="space-y-6">
+              {/* Motivação */}
+              {interview.responses.motivation && (
+                <div className="border rounded-lg p-4 bg-muted/30">
+                  <h4 className="text-sm font-semibold text-primary mb-2">
+                    Por que você tem interesse em trabalhar conosco?
+                  </h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">
+                    {interview.responses.motivation}
+                  </p>
+                </div>
+              )}
+
+              {/* Experiência */}
+              {interview.responses.experience && (
+                <div className="border rounded-lg p-4 bg-muted/30">
+                  <h4 className="text-sm font-semibold text-primary mb-2">
+                    Experiência profissional na área médica
+                  </h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">
+                    {interview.responses.experience}
+                  </p>
+                </div>
+              )}
+
+              {/* Experiência com Teleconsulta */}
+              {interview.responses.expectations && (
+                <div className="border rounded-lg p-4 bg-muted/30">
+                  <h4 className="text-sm font-semibold text-primary mb-2">
+                    Experiência com teleconsulta
+                  </h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">
+                    {interview.responses.expectations}
+                  </p>
+                </div>
+              )}
+
+              {/* WhatsApp */}
+              {interview.responses.whatsapp && (
+                <div className="border rounded-lg p-4 bg-muted/30">
+                  <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    WhatsApp para contato
+                  </h4>
+                  <p className="text-sm text-foreground font-medium">
+                    {interview.responses.whatsapp}
+                  </p>
+                </div>
+              )}
+
+              <Separator />
+
+              {/* Disponibilidade */}
+              {interview.responses.availability && typeof interview.responses.availability === 'object' && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary" />
+                    Disponibilidade de Horário
+                  </h3>
+                  <div className="space-y-3">
+                    {Object.entries(interview.responses.availability as Record<string, string[]>).map(([day, slots]) => {
+                      if (!slots || !Array.isArray(slots) || slots.length === 0) return null;
+                      return (
+                        <div key={day} className="border rounded-lg p-4 bg-muted/30">
+                          <div className="flex items-start gap-3">
+                            <div className="font-semibold text-sm min-w-[120px] text-primary">
+                              {DAYS_OF_WEEK_MAP[day] || day}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex flex-wrap gap-2">
+                                {slots.map((slot, index) => (
+                                  <Badge
+                                    key={`${day}-${slot}-${index}`}
+                                    variant="secondary"
+                                    className="bg-primary/10 text-primary"
+                                  >
+                                    {slot}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   const handleStatusUpdate = async (applicationId: string, newStatus: 'approved' | 'rejected') => {
@@ -208,31 +352,31 @@ export default function Interviews() {
           ))}
         </div>
         
-        {((interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress') || interview.status === 'approved' || interview.status === 'rejected') && (
-          <div className="flex gap-2 mt-6 pt-4 border-t">
-            {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress' || interview.status === 'rejected') && (
-              <Button
-                onClick={() => handleStatusUpdate(interview.application_id, 'approved')}
-                className="flex items-center gap-2"
-                size="sm"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Aprovar
-              </Button>
-            )}
-            {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress' || interview.status === 'approved') && (
-              <Button
-                onClick={() => handleStatusUpdate(interview.application_id, 'rejected')}
-                variant="destructive"
-                className="flex items-center gap-2"
-                size="sm"
-              >
-                <XCircle className="h-4 w-4" />
-                Rejeitar
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="flex gap-2 mt-6 pt-4 border-t">
+          <InterviewDetailsDialog interview={interview} />
+          
+          {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress' || interview.status === 'rejected') && (
+            <Button
+              onClick={() => handleStatusUpdate(interview.application_id, 'approved')}
+              className="flex items-center gap-2 bg-success hover:bg-success/90"
+              size="sm"
+            >
+              <CheckCircle className="h-4 w-4" />
+              Aprovar
+            </Button>
+          )}
+          {(interview.status === 'active' || interview.status === 'available' || interview.status === 'pending' || interview.status === 'in_progress' || interview.status === 'approved') && (
+            <Button
+              onClick={() => handleStatusUpdate(interview.application_id, 'rejected')}
+              variant="destructive"
+              className="flex items-center gap-2"
+              size="sm"
+            >
+              <XCircle className="h-4 w-4" />
+              Rejeitar
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
