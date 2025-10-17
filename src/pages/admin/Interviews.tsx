@@ -28,7 +28,7 @@ export default function Interviews() {
 
   const fetchInterviews = async () => {
     try {
-      // Buscar entrevistas (stage 2) - incluindo entrevistas em progresso
+      // Buscar entrevistas (stage 2) - incluindo todas com status relevante
       const { data: stages, error } = await supabase
         .from('stage_progress')
         .select('application_id, notes, status, created_at')
@@ -37,23 +37,8 @@ export default function Interviews() {
 
       if (error) throw error;
 
-      // Filtrar apenas entrevistas que têm dados preenchidos
-      const stagesWithData = (stages || []).filter((s: any) => {
-        if (!s.notes) return false;
-        try {
-          const parsed = JSON.parse(s.notes);
-          // Verificar se tem pelo menos um campo preenchido além da disponibilidade
-          const hasData = Object.keys(parsed).some(key => {
-            if (key === 'availability') return false;
-            return parsed[key] && parsed[key].toString().trim().length > 0;
-          });
-          return hasData || (parsed.availability && Object.keys(parsed.availability).length > 0);
-        } catch {
-          return false;
-        }
-      });
-
-      const appIds = stagesWithData.map((s: any) => s.application_id);
+      // Usar todas as entrevistas encontradas (não filtrar por dados vazios)
+      const appIds = (stages || []).map((s: any) => s.application_id);
       
       if (appIds.length === 0) {
         setInterviews([]);
@@ -76,7 +61,7 @@ export default function Interviews() {
       const appMap = new Map((appsRes || []).map((a: any) => [a.id, a.doctor_id]));
       const profileMap = new Map((profilesRes || []).map((p: any) => [p.user_id, p.full_name]));
 
-      const formattedData: InterviewResponse[] = stagesWithData.map((item: any) => {
+      const formattedData: InterviewResponse[] = (stages || []).map((item: any) => {
         const doctorId = appMap.get(item.application_id);
         const doctorName = profileMap.get(doctorId) || 'Nome não informado';
         let parsed: any = {};
@@ -153,96 +138,105 @@ export default function Interviews() {
 
             <Separator />
 
-            {/* Respostas da Entrevista */}
-            <div className="space-y-6">
-              {/* Motivação */}
-              {interview.responses.motivation && (
-                <div className="border rounded-lg p-4 bg-muted/30">
-                  <h4 className="text-sm font-semibold text-primary mb-2">
-                    Por que você tem interesse em trabalhar conosco?
-                  </h4>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">
-                    {interview.responses.motivation}
-                  </p>
-                </div>
-              )}
+            {/* Verificar se há dados */}
+            {Object.keys(interview.responses).length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-base font-medium">Nenhum dado de entrevista submetido</p>
+                <p className="text-sm mt-2">O profissional ainda não completou o preenchimento da entrevista.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Respostas da Entrevista */}
+                {/* Motivação */}
+                {interview.responses.motivation && (
+                  <div className="border rounded-lg p-4 bg-muted/30">
+                    <h4 className="text-sm font-semibold text-primary mb-2">
+                      Por que você tem interesse em trabalhar conosco?
+                    </h4>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">
+                      {interview.responses.motivation}
+                    </p>
+                  </div>
+                )}
 
-              {/* Experiência */}
-              {interview.responses.experience && (
-                <div className="border rounded-lg p-4 bg-muted/30">
-                  <h4 className="text-sm font-semibold text-primary mb-2">
-                    Experiência profissional na área médica
-                  </h4>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">
-                    {interview.responses.experience}
-                  </p>
-                </div>
-              )}
+                {/* Experiência */}
+                {interview.responses.experience && (
+                  <div className="border rounded-lg p-4 bg-muted/30">
+                    <h4 className="text-sm font-semibold text-primary mb-2">
+                      Experiência profissional na área médica
+                    </h4>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">
+                      {interview.responses.experience}
+                    </p>
+                  </div>
+                )}
 
-              {/* Experiência com Teleconsulta */}
-              {interview.responses.expectations && (
-                <div className="border rounded-lg p-4 bg-muted/30">
-                  <h4 className="text-sm font-semibold text-primary mb-2">
-                    Experiência com teleconsulta
-                  </h4>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">
-                    {interview.responses.expectations}
-                  </p>
-                </div>
-              )}
+                {/* Experiência com Teleconsulta */}
+                {interview.responses.expectations && (
+                  <div className="border rounded-lg p-4 bg-muted/30">
+                    <h4 className="text-sm font-semibold text-primary mb-2">
+                      Experiência com teleconsulta
+                    </h4>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">
+                      {interview.responses.expectations}
+                    </p>
+                  </div>
+                )}
 
-              {/* WhatsApp */}
-              {interview.responses.whatsapp && (
-                <div className="border rounded-lg p-4 bg-muted/30">
-                  <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    WhatsApp para contato
-                  </h4>
-                  <p className="text-sm text-foreground font-medium">
-                    {interview.responses.whatsapp}
-                  </p>
-                </div>
-              )}
+                {/* WhatsApp */}
+                {interview.responses.whatsapp && (
+                  <div className="border rounded-lg p-4 bg-muted/30">
+                    <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      WhatsApp para contato
+                    </h4>
+                    <p className="text-sm text-foreground font-medium">
+                      {interview.responses.whatsapp}
+                    </p>
+                  </div>
+                )}
 
-              <Separator />
+                <Separator />
 
-              {/* Disponibilidade */}
-              {interview.responses.availability && typeof interview.responses.availability === 'object' && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    Disponibilidade de Horário
-                  </h3>
-                  <div className="space-y-3">
-                    {Object.entries(interview.responses.availability as Record<string, string[]>).map(([day, slots]) => {
-                      if (!slots || !Array.isArray(slots) || slots.length === 0) return null;
-                      return (
-                        <div key={day} className="border rounded-lg p-4 bg-muted/30">
-                          <div className="flex items-start gap-3">
-                            <div className="font-semibold text-sm min-w-[120px] text-primary">
-                              {DAYS_OF_WEEK_MAP[day] || day}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex flex-wrap gap-2">
-                                {slots.map((slot, index) => (
-                                  <Badge
-                                    key={`${day}-${slot}-${index}`}
-                                    variant="secondary"
-                                    className="bg-primary/10 text-primary"
-                                  >
-                                    {slot}
-                                  </Badge>
-                                ))}
+                {/* Disponibilidade */}
+                {interview.responses.availability && typeof interview.responses.availability === 'object' && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-primary" />
+                      Disponibilidade de Horário
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.entries(interview.responses.availability as Record<string, string[]>).map(([day, slots]) => {
+                        if (!slots || !Array.isArray(slots) || slots.length === 0) return null;
+                        return (
+                          <div key={day} className="border rounded-lg p-4 bg-muted/30">
+                            <div className="flex items-start gap-3">
+                              <div className="font-semibold text-sm min-w-[120px] text-primary">
+                                {DAYS_OF_WEEK_MAP[day] || day}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex flex-wrap gap-2">
+                                  {slots.map((slot, index) => (
+                                    <Badge
+                                      key={`${day}-${slot}-${index}`}
+                                      variant="secondary"
+                                      className="bg-primary/10 text-primary"
+                                    >
+                                      {slot}
+                                    </Badge>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -352,50 +346,58 @@ export default function Interviews() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {/* Mostrar campos de texto primeiro */}
-          {Object.entries(interview.responses)
-            .filter(([key]) => key !== 'availability')
-            .map(([question, answer]) => (
-              <div key={question} className="border-l-2 border-primary/20 pl-4">
-                <p className="font-medium text-sm text-muted-foreground mb-1">
-                  {question === 'motivation' ? 'Motivação' : 
-                   question === 'experience' ? 'Experiência' : 
-                   question === 'expectations' ? 'Experiência com Teleconsulta' : 
-                   question === 'whatsapp' ? 'WhatsApp' : question}
+        {/* Verificar se há dados preenchidos */}
+        {Object.keys(interview.responses).length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="text-sm">Nenhum dado de entrevista foi submetido ainda.</p>
+            <p className="text-xs mt-2">O profissional iniciou mas não completou a entrevista.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Mostrar campos de texto primeiro */}
+            {Object.entries(interview.responses)
+              .filter(([key]) => key !== 'availability')
+              .map(([question, answer]) => (
+                <div key={question} className="border-l-2 border-primary/20 pl-4">
+                  <p className="font-medium text-sm text-muted-foreground mb-1">
+                    {question === 'motivation' ? 'Motivação' : 
+                     question === 'experience' ? 'Experiência' : 
+                     question === 'expectations' ? 'Experiência com Teleconsulta' : 
+                     question === 'whatsapp' ? 'WhatsApp' : question}
+                  </p>
+                  <p className="text-sm whitespace-pre-wrap">{String(answer)}</p>
+                </div>
+              ))}
+            
+            {/* Mostrar disponibilidade por último */}
+            {interview.responses.availability && typeof interview.responses.availability === 'object' && (
+              <div className="border-l-2 border-primary/20 pl-4">
+                <p className="font-medium text-sm text-muted-foreground mb-2">
+                  Disponibilidade de Horário
                 </p>
-                <p className="text-sm whitespace-pre-wrap">{String(answer)}</p>
-              </div>
-            ))}
-          
-          {/* Mostrar disponibilidade por último */}
-          {interview.responses.availability && typeof interview.responses.availability === 'object' && (
-            <div className="border-l-2 border-primary/20 pl-4">
-              <p className="font-medium text-sm text-muted-foreground mb-2">
-                Disponibilidade de Horário
-              </p>
-              <div className="space-y-2">
-                {Object.entries(interview.responses.availability as Record<string, string[]>).map(([day, slots]) => {
-                  if (!slots || !Array.isArray(slots) || slots.length === 0) return null;
-                  return (
-                    <div key={day} className="flex gap-2 text-sm">
-                      <span className="font-medium min-w-[100px]">
-                        {DAYS_OF_WEEK_MAP[day] || day}:
-                      </span>
-                      <div className="flex flex-wrap gap-1">
-                        {slots.map((slot, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {slot}
-                          </Badge>
-                        ))}
+                <div className="space-y-2">
+                  {Object.entries(interview.responses.availability as Record<string, string[]>).map(([day, slots]) => {
+                    if (!slots || !Array.isArray(slots) || slots.length === 0) return null;
+                    return (
+                      <div key={day} className="flex gap-2 text-sm">
+                        <span className="font-medium min-w-[100px]">
+                          {DAYS_OF_WEEK_MAP[day] || day}:
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {slots.map((slot, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {slot}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
         
         <div className="flex gap-2 mt-6 pt-4 border-t">
           <InterviewDetailsDialog interview={interview} />
