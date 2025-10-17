@@ -1,7 +1,12 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+
+// Verificação de segurança para React
+if (typeof React === 'undefined') {
+  console.error('React is not defined! This should never happen.');
+}
 
 interface AuthContextType {
   user: User | null;
