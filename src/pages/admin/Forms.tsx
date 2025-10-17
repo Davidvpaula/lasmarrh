@@ -177,6 +177,64 @@ export default function Forms() {
       institution: 'Instituição de Ensino'
     };
 
+    const handleDownloadDocument = async (doc: any) => {
+      try {
+        // Baixar arquivo do storage
+        const { data, error } = await supabase.storage
+          .from('candidate-documents')
+          .download(doc.file_path);
+
+        if (error) {
+          throw error;
+        }
+
+        // Criar URL blob e fazer download
+        const url = URL.createObjectURL(data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = doc.file_name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        toast({
+          title: "Download concluído",
+          description: `${doc.file_name} foi baixado com sucesso.`,
+        });
+      } catch (error) {
+        console.error('Download error:', error);
+        toast({
+          title: "Erro ao baixar",
+          description: "Não foi possível baixar o documento.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    const handleViewDocument = async (doc: any) => {
+      try {
+        // Obter URL assinada temporária (válida por 1 hora)
+        const { data, error } = await supabase.storage
+          .from('candidate-documents')
+          .createSignedUrl(doc.file_path, 3600);
+
+        if (error) {
+          throw error;
+        }
+
+        // Abrir em nova aba
+        window.open(data.signedUrl, '_blank');
+      } catch (error) {
+        console.error('View error:', error);
+        toast({
+          title: "Erro ao visualizar",
+          description: "Não foi possível visualizar o documento.",
+          variant: "destructive",
+        });
+      }
+    };
+
     return (
       <Dialog>
         <DialogTrigger asChild>
@@ -217,21 +275,27 @@ export default function Forms() {
                 <User className="h-5 w-5 text-primary" />
                 Informações Pessoais
               </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {form.form_data?.form && Object.entries(form.form_data.form).map(([field, value]) => (
-                  <div key={field} className="border rounded-lg p-3 bg-muted/30">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      {fieldLabels[field] || field}
-                    </span>
-                    <p className="text-sm font-medium mt-1">
-                      {field === 'birth_date' && value ? 
-                        new Date(value as string).toLocaleDateString('pt-BR') :
-                        String(value || 'Não informado')
-                      }
-                    </p>
-                  </div>
-                ))}
-              </div>
+              {form.form_data?.form && Object.keys(form.form_data.form).length > 0 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {Object.entries(form.form_data.form).map(([field, value]) => (
+                    <div key={field} className="border rounded-lg p-3 bg-muted/30">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        {fieldLabels[field] || field}
+                      </span>
+                      <p className="text-sm font-medium mt-1">
+                        {field === 'birth_date' && value ? 
+                          new Date(value as string).toLocaleDateString('pt-BR') :
+                          String(value || 'Não informado')
+                        }
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Nenhum dado pessoal preenchido ainda</p>
+                </div>
+              )}
             </div>
 
             <Separator />
@@ -268,12 +332,7 @@ export default function Forms() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                              toast({
-                                title: "Visualizar Documento",
-                                description: `Abrindo ${docTypeLabels[doc.document_type] || doc.document_type}`,
-                              });
-                            }}
+                            onClick={() => handleViewDocument(doc)}
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             Ver
@@ -281,12 +340,7 @@ export default function Forms() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                              toast({
-                                title: "Download",
-                                description: `Baixando ${doc.file_name}`,
-                              });
-                            }}
+                            onClick={() => handleDownloadDocument(doc)}
                           >
                             <Download className="h-4 w-4 mr-1" />
                             Baixar

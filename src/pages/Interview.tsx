@@ -12,6 +12,22 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Calendar, CheckCircle, Clock, ChevronDown, X } from 'lucide-react';
+import { z } from 'zod';
+
+// Schema de validação com Zod
+const interviewFormSchema = z.object({
+  motivation: z.string().trim().min(50, 'Resposta muito curta (mínimo 50 caracteres)').max(2000, 'Resposta muito longa'),
+  experience: z.string().trim().min(50, 'Resposta muito curta (mínimo 50 caracteres)').max(2000, 'Resposta muito longa'),
+  expectations: z.string().trim().min(30, 'Resposta muito curta (mínimo 30 caracteres)').max(2000, 'Resposta muito longa'),
+  whatsapp: z.string().trim().regex(/^\(\d{2}\)\s?\d{4,5}-?\d{4}$|^\d{10,11}$/, 'WhatsApp inválido. Use formato: (XX) XXXXX-XXXX'),
+  availability: z.record(z.string(), z.array(z.string())).refine(
+    (data) => {
+      const allSlots = Object.values(data).flat();
+      return allSlots.length > 0;
+    },
+    { message: 'Selecione pelo menos um horário de disponibilidade' }
+  )
+});
 
 interface InterviewForm {
   motivation: string;
@@ -151,13 +167,18 @@ const Interview = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate availability selection
-    if (!hasAnyAvailability()) {
-      toast({
-        title: "Erro de Validação",
-        description: "Por favor, selecione pelo menos um horário de disponibilidade.",
-        variant: "destructive",
-      });
+    // Validar com Zod
+    const validationResult = interviewFormSchema.safeParse(form);
+    if (!validationResult.success) {
+      const errors = validationResult.error.flatten().fieldErrors;
+      const firstError = Object.entries(errors)[0];
+      if (firstError) {
+        toast({
+          title: "Erro de validação",
+          description: firstError[1]?.[0] || 'Por favor, revise os campos do formulário',
+          variant: "destructive",
+        });
+      }
       return;
     }
 
@@ -171,13 +192,13 @@ const Interview = () => {
         .single();
 
       if (application) {
-        // Save form data to stage_progress - this goes to admin for review
+        // Save validated form data to stage_progress
         await supabase
           .from('stage_progress')
           .update({
             status: 'in_progress',
             started_at: new Date().toISOString(),
-            notes: JSON.stringify(form)
+            notes: JSON.stringify(validationResult.data)
           })
           .eq('application_id', application.id)
           .eq('stage_number', 2);

@@ -8,6 +8,21 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, FileText, Upload, CheckCircle, X } from 'lucide-react';
+import { z } from 'zod';
+
+// Schema de validação com Zod
+const documentFormSchema = z.object({
+  full_name: z.string().trim().min(3, 'Nome deve ter no mínimo 3 caracteres').max(100, 'Nome muito longo'),
+  cpf: z.string().trim().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$/, 'CPF inválido'),
+  rg: z.string().trim().min(5, 'RG inválido').max(20, 'RG muito longo'),
+  birth_date: z.string().min(1, 'Data de nascimento obrigatória'),
+  phone: z.string().trim().regex(/^\(\d{2}\)\s?\d{4,5}-?\d{4}$|^\d{10,11}$/, 'Telefone inválido'),
+  address: z.string().trim().min(10, 'Endereço muito curto').max(200, 'Endereço muito longo'),
+  crm_number: z.string().trim().min(3, 'CRM inválido').max(20, 'CRM muito longo'),
+  specialty: z.string().trim().min(2, 'Especialidade inválida').max(100, 'Especialidade muito longa'),
+  graduation_year: z.string().regex(/^\d{4}$/, 'Ano inválido'),
+  institution: z.string().trim().min(3, 'Nome da instituição muito curto').max(150, 'Nome da instituição muito longo')
+});
 
 interface DocumentForm {
   full_name: string;
@@ -122,21 +137,55 @@ const Documents = () => {
   };
 
   const uploadFile = async (file: File, docType: string, applicationId: string) => {
+    // Validar tamanho do arquivo (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('Arquivo muito grande. Máximo: 10MB');
+    }
+
+    // Validar tipo do arquivo
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('Tipo de arquivo não permitido. Use PDF, JPG ou PNG');
+    }
+
     const fileExt = file.name.split('.').pop();
-    const fileName = `${applicationId}/${docType}_${Date.now()}.${fileExt}`;
+    const fileName = `${profile.user_id}/${docType}_${Date.now()}.${fileExt}`;
     
-    // For now, we'll simulate file upload and store document records
-    // In a real implementation, you would upload to Supabase Storage
-    await supabase
+    // Upload real para o Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('candidate-documents')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw new Error(`Erro ao fazer upload: ${uploadError.message}`);
+    }
+
+    // Obter URL pública (mesmo sendo privado, para referência)
+    const { data: { publicUrl } } = supabase.storage
+      .from('candidate-documents')
+      .getPublicUrl(fileName);
+    
+    // Salvar registro do documento no banco
+    const { error: dbError } = await supabase
       .from('documents')
       .insert({
         application_id: applicationId,
         document_type: docType,
-        file_path: `documents/${fileName}`,
+        file_path: fileName,
         file_name: file.name,
         title: docType,
-        file_url: `documents/${fileName}`
+        file_url: publicUrl
       });
+
+    if (dbError) {
+      // Se falhar ao salvar no banco, deletar o arquivo do storage
+      await supabase.storage.from('candidate-documents').remove([fileName]);
+      throw new Error(`Erro ao salvar registro: ${dbError.message}`);
+    }
 
     return fileName;
   };
@@ -145,6 +194,31 @@ const Documents = () => {
     setLoading(true);
 
     try {
+      // Validar formulário com Zod
+      const validationResult = documentFormSchema.safeParse(form);
+      if (!validationResult.success) {
+        const errors = validationResult.error.flatten().fieldErrors;
+        const firstError = Object.values(errors)[0]?.[0] || 'Erro de validação';
+        toast({
+          title: "Erro de validação",
+          description: firstError,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Verificar se há arquivos para upload
+      if (Object.keys(files).length === 0) {
+        toast({
+          title: "Atenção",
+          description: "Anexe pelo menos um documento antes de enviar.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data: application } = await supabase
         .from('applications')
         .select('id')
@@ -154,6 +228,8 @@ const Documents = () => {
       if (application) {
         // Upload new files
         const newUploadedDocs = [...uploadedDocs];
+        let uploadErrors = 0;
+        
         for (const [docType, file] of Object.entries(files)) {
           try {
             await uploadFile(file, docType, application.id);
@@ -161,17 +237,32 @@ const Documents = () => {
               newUploadedDocs.push(docType);
             }
           } catch (error) {
-            console.error(`Error uploading ${docType}:`, error);
+            uploadErrors++;
+            toast({
+              title: "Erro no upload",
+              description: error instanceof Error ? error.message : `Erro ao fazer upload de ${docType}`,
+              variant: "destructive",
+            });
           }
         }
 
-        // Update stage progress
+        if (uploadErrors === Object.keys(files).length) {
+          toast({
+            title: "Erro",
+            description: "Não foi possível fazer upload de nenhum documento.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
+        // Update stage progress with validated form data
         await supabase
           .from('stage_progress')
           .update({
             status: 'in_progress',
             started_at: new Date().toISOString(),
-            notes: JSON.stringify({ form, uploadedDocs: newUploadedDocs })
+            notes: JSON.stringify({ form: validationResult.data, uploadedDocs: newUploadedDocs })
           })
           .eq('application_id', application.id)
           .eq('stage_number', 3);
