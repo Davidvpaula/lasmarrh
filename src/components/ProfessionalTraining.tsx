@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Play, CheckCircle, Clock, Award, FileSignature, ExternalLink, AlertTriangle, Youtube } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, Clock, Award, FileSignature, ExternalLink, AlertTriangle, Youtube, X } from 'lucide-react';
 
 interface TrainingVideo {
   id: string;
@@ -129,11 +129,6 @@ const ProfessionalTraining = () => {
     return Math.min((videoProgress.watch_time_minutes / video.duration_minutes) * 100, 100);
   };
 
-  const canSignVideo = (videoId: string) => {
-    const watchedPercentage = getVideoWatchedPercentage(videoId);
-    return watchedPercentage >= 80; // Precisa assistir pelo menos 80% do vídeo
-  };
-
   const getYouTubeVideoId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
     return match ? match[1] : null;
@@ -170,9 +165,10 @@ const ProfessionalTraining = () => {
       
       if (currentProgress >= 100) {
         clearInterval(interval);
+        // Removido: não marcar automaticamente como concluído
         toast({
           title: "Vídeo assistido completamente!",
-          description: "Agora você pode assinar para validar seu treinamento.",
+          description: "Você pode marcar como concluído quando quiser.",
         });
       }
     }, 2000); // A cada 2 segundos
@@ -231,7 +227,7 @@ const ProfessionalTraining = () => {
     
     toast({
       title: "Vídeo iniciado",
-      description: "Acompanhe o progresso de visualização. Você poderá assinar após assistir pelo menos 80%.",
+      description: "Assista o vídeo e marque como concluído quando terminar.",
     });
   };
 
@@ -240,15 +236,6 @@ const ProfessionalTraining = () => {
     
     const video = videos.find(v => v.id === confirmingSignature);
     if (!video) return;
-
-    if (!canSignVideo(confirmingSignature)) {
-      toast({
-        title: "Não é possível assinar ainda",
-        description: "Você precisa assistir pelo menos 80% do vídeo antes de assinar.",
-        variant: "destructive"
-      });
-      return;
-    }
 
     try {
       // Atualizar no banco como completo
@@ -285,36 +272,56 @@ const ProfessionalTraining = () => {
       setProgress(updatedProgress);
       setConfirmingSignature(null);
       
-      // Verificar se todos os vídeos foram assinados
-      const allCompleted = videos.every(v => {
-        const prog = updatedProgress.find(p => p.video_id === v.id);
-        return prog?.completed_at || v.id === confirmingSignature;
+      toast({
+        title: "✅ Vídeo Assinado!",
+        description: `"${video.title}" foi assinado com sucesso. Treinamento validado!`,
       });
-
-      if (allCompleted) {
-        // Atualizar stage_progress para completado
-        await supabase
-          .from('stage_progress')
-          .update({ status: 'in_progress' })
-          .eq('application_id', applicationId)
-          .eq('stage_number', 4);
-
-        setStageStatus('completed');
-        toast({
-          title: "🎉 Todos os vídeos foram assistidos!",
-          description: "Seu treinamento foi concluído com sucesso!",
-        });
-      } else {
-        toast({
-          title: "✅ Vídeo Assinado!",
-          description: `"${video.title}" foi assinado com sucesso. Treinamento validado!`,
-        });
-      }
     } catch (error) {
       console.error('Erro ao assinar vídeo:', error);
       toast({
         title: "Erro",
         description: "Falha ao registrar assinatura do vídeo",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const unsignVideo = async (videoId: string) => {
+    if (!applicationId) return;
+    
+    const video = videos.find(v => v.id === videoId);
+    if (!video) return;
+
+    try {
+      // Remover completed_at do banco
+      const { error } = await supabase
+        .from('training_progress')
+        .update({
+          completed_at: null
+        })
+        .eq('application_id', applicationId)
+        .eq('video_id', videoId);
+
+      if (error) throw error;
+
+      // Atualizar localmente
+      const updatedProgress = progress.map(p => 
+        p.video_id === videoId 
+          ? { ...p, completed_at: null }
+          : p
+      );
+      
+      setProgress(updatedProgress);
+      
+      toast({
+        title: "Assinatura removida",
+        description: `Você pode reassistir e assinar "${video.title}" novamente.`,
+      });
+    } catch (error) {
+      console.error('Erro ao desmarcar vídeo:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao desmarcar vídeo",
         variant: "destructive"
       });
     }
@@ -400,9 +407,7 @@ const ProfessionalTraining = () => {
               const isCompleted = isVideoCompleted(video.id);
               const isStarted = isVideoStarted(video.id);
               const watchedPercentage = getVideoWatchedPercentage(video.id);
-              const canSign = canSignVideo(video.id);
               const youtubeId = getYouTubeVideoId(video.video_url);
-
               return (
                 <Card key={video.id} className={`${isCompleted ? 'border-success bg-success/5' : isStarted ? 'border-warning bg-warning/5' : ''} transition-all duration-300`}>
                   <CardHeader>
@@ -428,11 +433,6 @@ const ProfessionalTraining = () => {
                                   <span>{Math.round(watchedPercentage)}%</span>
                                 </div>
                                 <Progress value={watchedPercentage} className="h-1.5" />
-                                {watchedPercentage < 80 && (
-                                  <p className="text-xs text-muted-foreground">
-                                    Assista pelo menos 80% para poder assinar
-                                  </p>
-                                )}
                               </div>
                             )}
                           </div>
@@ -444,11 +444,11 @@ const ProfessionalTraining = () => {
                         </Badge>
                         {isCompleted ? (
                           <Badge variant="secondary" className="bg-success text-success-foreground">
-                            ✅ Assinado
+                            ✅ Concluído
                           </Badge>
                         ) : isStarted ? (
                           <Badge variant="secondary" className="bg-warning text-warning-foreground">
-                            📺 Assistindo ({Math.round(watchedPercentage)}%)
+                            📺 Assistindo
                           </Badge>
                         ) : (
                           <Badge variant="outline">⏸️ Não Iniciado</Badge>
@@ -482,97 +482,86 @@ const ProfessionalTraining = () => {
                       )}
                       
                       <div className="flex items-center gap-3 flex-wrap">
-                        {!isCompleted && (
-                          <>
-                            {/* Botão Assistir */}
-                            <Button
-                              onClick={() => {
-                                startVideo(video.id);
-                                setWatchingVideo(video.id);
-                              }}
-                              variant={isStarted ? "outline" : "default"}
-                              className="flex-shrink-0"
-                            >
-                              <Play className="h-4 w-4 mr-2" />
-                              {isStarted ? "Continuar Assistindo" : "▶️ Assistir Vídeo"}
-                            </Button>
-                            
-                            {/* Botão Assinar com Dialog de Confirmação */}
-                            <Dialog open={confirmingSignature === video.id} onOpenChange={(open) => !open && setConfirmingSignature(null)}>
-                              <DialogTrigger asChild>
+                        {/* Botão Assistir - sempre disponível */}
+                        <Button
+                          onClick={() => {
+                            startVideo(video.id);
+                            setWatchingVideo(video.id);
+                          }}
+                          variant={isStarted ? "outline" : "default"}
+                          className="flex-shrink-0"
+                        >
+                          <Play className="h-4 w-4 mr-2" />
+                          {isCompleted ? "Reassistir Vídeo" : isStarted ? "Continuar Assistindo" : "▶️ Assistir Vídeo"}
+                        </Button>
+                        
+                        {!isCompleted ? (
+                          /* Botão Marcar como Concluído */
+                          <Dialog open={confirmingSignature === video.id} onOpenChange={(open) => !open && setConfirmingSignature(null)}>
+                            <DialogTrigger asChild>
+                              <Button
+                                onClick={() => setConfirmingSignature(video.id)}
+                                variant="default"
+                                className="flex-shrink-0 bg-success hover:bg-success/90"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                ✅ Marcar como Concluído
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Confirmar Conclusão do Treinamento</DialogTitle>
+                                <DialogDescription>
+                                  Você está prestes a marcar como concluído o vídeo:
+                                  <strong className="block mt-2">"{video.title}"</strong>
+                                </DialogDescription>
+                              </DialogHeader>
+                              
+                              <Alert>
+                                <CheckCircle className="h-4 w-4" />
+                                <AlertDescription>
+                                  <strong>Ao confirmar, você declara ter assistido e compreendido o conteúdo apresentado.</strong>
+                                  <br />
+                                  Você poderá desmarcar e reassistir o vídeo a qualquer momento.
+                                </AlertDescription>
+                              </Alert>
+                              
+                              <div className="flex gap-3 pt-4">
                                 <Button
-                                  onClick={() => setConfirmingSignature(video.id)}
-                                  variant="default"
-                                  className={`flex-shrink-0 ${canSign 
-                                    ? 'bg-gradient-primary hover:bg-primary-hover' 
-                                    : 'opacity-50 cursor-not-allowed'
-                                  }`}
-                                  disabled={!canSign}
+                                  onClick={confirmSignVideo}
+                                  className="bg-success hover:bg-success/90"
                                 >
-                                  <FileSignature className="h-4 w-4 mr-2" />
-                                  ✋ Confirmar que Assisti
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  ✅ Confirmar Conclusão
                                 </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Confirmar Assinatura do Treinamento</DialogTitle>
-                                  <DialogDescription>
-                                    Você está prestes a assinar que assistiu completamente ao vídeo:
-                                    <strong className="block mt-2">"{video.title}"</strong>
-                                  </DialogDescription>
-                                </DialogHeader>
-                                
-                                {canSign ? (
-                                  <Alert>
-                                    <CheckCircle className="h-4 w-4" />
-                                    <AlertDescription>
-                                      ✅ Você assistiu {Math.round(watchedPercentage)}% do vídeo e pode assinar seu treinamento.
-                                      <br />
-                                      <strong>Ao confirmar, você declara ter compreendido o conteúdo apresentado.</strong>
-                                    </AlertDescription>
-                                  </Alert>
-                                ) : (
-                                  <Alert variant="destructive">
-                                    <AlertTriangle className="h-4 w-4" />
-                                    <AlertDescription>
-                                      ⚠️ Você precisa assistir pelo menos 80% do vídeo antes de assinar.
-                                      <br />
-                                      Progresso atual: {Math.round(watchedPercentage)}%
-                                    </AlertDescription>
-                                  </Alert>
-                                )}
-                                
-                                <div className="flex gap-3 pt-4">
-                                  <Button
-                                    onClick={confirmSignVideo}
-                                    disabled={!canSign}
-                                    className={canSign ? "bg-success hover:bg-success/90" : ""}
-                                  >
-                                    <FileSignature className="h-4 w-4 mr-2" />
-                                    {canSign ? "✅ Confirmar Assinatura" : "Assistir mais para assinar"}
-                                  </Button>
-                                  <Button variant="outline" onClick={() => setConfirmingSignature(null)}>
-                                    Cancelar
-                                  </Button>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          </>
+                                <Button variant="outline" onClick={() => setConfirmingSignature(null)}>
+                                  Cancelar
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        ) : (
+                          /* Botão Desmarcar - quando já está completo */
+                          <Button
+                            onClick={() => unsignVideo(video.id)}
+                            variant="outline"
+                            className="flex-shrink-0 border-warning text-warning hover:bg-warning/10"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Desmarcar Conclusão
+                          </Button>
                         )}
                         
                         {/* Status de Completo */}
                         {isCompleted && videoProgress?.completed_at && (
-                          <div className="flex items-center gap-4 w-full bg-success/10 p-4 rounded-lg">
-                            <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-success">Treinamento Validado!</p>
+                          <div className="flex items-center gap-2 bg-success/10 px-3 py-2 rounded-lg">
+                            <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
+                            <div>
+                              <p className="text-xs font-medium text-success">Concluído</p>
                               <p className="text-xs text-muted-foreground">
-                                Assinado em {new Date(videoProgress.completed_at).toLocaleString('pt-BR')}
+                                {new Date(videoProgress.completed_at).toLocaleDateString('pt-BR')}
                               </p>
                             </div>
-                            <Badge variant="secondary" className="bg-success text-success-foreground">
-                              🏆 Certificado
-                            </Badge>
                           </div>
                         )}
                       </div>
