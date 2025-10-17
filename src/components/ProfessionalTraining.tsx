@@ -238,18 +238,35 @@ const ProfessionalTraining = () => {
     if (!video) return;
 
     try {
-      // Atualizar no banco como completo
-      const { error } = await supabase
-        .from('training_progress')
-        .upsert({
-          application_id: applicationId,
-          video_id: confirmingSignature,
-          started_at: getVideoProgress(confirmingSignature)?.started_at || new Date().toISOString(),
-          completed_at: new Date().toISOString(),
-          watch_time_minutes: video.duration_minutes
-        });
+      // Verificar se já existe progresso
+      const existingProgress = getVideoProgress(confirmingSignature);
+      
+      if (existingProgress) {
+        // Atualizar registro existente
+        const { error } = await supabase
+          .from('training_progress')
+          .update({
+            completed_at: new Date().toISOString(),
+            watch_time_minutes: video.duration_minutes
+          })
+          .eq('application_id', applicationId)
+          .eq('video_id', confirmingSignature);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Criar novo registro
+        const { error } = await supabase
+          .from('training_progress')
+          .insert({
+            application_id: applicationId,
+            video_id: confirmingSignature,
+            started_at: new Date().toISOString(),
+            completed_at: new Date().toISOString(),
+            watch_time_minutes: video.duration_minutes
+          });
+
+        if (error) throw error;
+      }
 
       // Marcar como completo localmente
       const updatedProgress = progress.map(p => 
