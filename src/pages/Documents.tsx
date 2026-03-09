@@ -121,7 +121,7 @@ const Documents = () => {
           
           if (stage.notes) {
             try {
-              const savedData = JSON.parse(stage.notes);
+              const savedData = JSON.parse(String(stage.notes));
               if (savedData.form) setForm(savedData.form);
               if (savedData.uploadedDocs) setUploadedDocs(savedData.uploadedDocs);
             } catch (e) {
