@@ -100,7 +100,7 @@ export default function Training() {
       // Buscar progresso de treinamento de todos os candidatos
       const { data: progressData, error: progressError } = await supabase
         .from('training_progress')
-        .select('application_id, video_id, watch_time_minutes, completed_at, started_at');
+        .select('application_id, video_id, watch_time_minutes, completed_at');
 
       if (progressError) throw progressError;
 
