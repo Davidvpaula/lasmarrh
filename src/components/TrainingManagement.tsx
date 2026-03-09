@@ -26,8 +26,8 @@ interface Document {
   id: string;
   document_type: string;
   file_name: string;
-  file_path: string;
-  uploaded_at: string;
+  file_url: string;
+  created_at: string;
 }
 
 const TrainingManagement = () => {
