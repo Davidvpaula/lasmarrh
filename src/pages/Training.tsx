@@ -20,7 +20,6 @@ interface TrainingVideo {
 
 interface VideoProgress {
   video_id: string;
-  started_at: string | null;
   completed_at: string | null;
   watch_time_minutes: number;
 }
