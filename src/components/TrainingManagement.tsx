@@ -76,7 +76,7 @@ const TrainingManagement = () => {
         .from('documents')
         .select('*')
         .eq('document_type', 'template')
-        .order('uploaded_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setDocuments(data || []);

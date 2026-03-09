@@ -125,7 +125,7 @@ export default function Forms() {
         
         let parsed: any = {};
         if (stage?.notes) {
-          try { parsed = JSON.parse(stage.notes); } catch {}
+          try { parsed = JSON.parse(String(stage.notes)); } catch {}
         }
 
         return {

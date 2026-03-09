@@ -129,15 +129,8 @@ const Training = () => {
             video_id: videoId,
             watch_time_minutes: 0
           });
-      } else if (!existingProgress.started_at) {
-        await supabase
-          .from('training_progress')
-          .update({
-            started_at: new Date().toISOString()
-          })
-          .eq('application_id', applicationId)
-          .eq('video_id', videoId);
       }
+      setCurrentVideo(videoId);
 
       setCurrentVideo(videoId);
       await loadTrainingData();

@@ -114,7 +114,7 @@ export default function Training() {
         const candidateProgress = progressData?.filter(p => p.application_id === app.id) || [];
         
         const completedVideos = candidateProgress.filter(p => p.completed_at !== null).length;
-        const inProgressVideos = candidateProgress.filter(p => p.started_at !== null && p.completed_at === null).length;
+        const inProgressVideos = candidateProgress.filter(p => p.completed_at === null).length;
         const notStartedVideos = (videosData?.length || 0) - candidateProgress.length;
 
         candidatesMap.set(app.id, {

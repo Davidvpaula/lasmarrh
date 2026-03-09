@@ -161,7 +161,7 @@ const Documents = () => {
         try {
           const { data: signedUrl, error: urlError } = await supabase.storage
             .from('candidate-documents')
-            .createSignedUrl(doc.file_path, 3600); // 1 hora de validade
+            .createSignedUrl(doc.file_url || doc.file_name, 3600); // 1 hora de validade
 
           if (urlError) {
             console.error('Error creating signed URL:', urlError);

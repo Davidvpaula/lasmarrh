@@ -13,7 +13,7 @@ interface StageProgress {
   status: string;
   started_at?: string;
   completed_at?: string;
-  notes?: string;
+  notes?: any;
 }
 
 interface Application {
