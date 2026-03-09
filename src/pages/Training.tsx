@@ -127,7 +127,6 @@ const Training = () => {
           .insert({
             application_id: applicationId,
             video_id: videoId,
-            started_at: new Date().toISOString(),
             watch_time_minutes: 0
           });
       } else if (!existingProgress.started_at) {
