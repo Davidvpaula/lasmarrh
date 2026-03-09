@@ -112,7 +112,7 @@ const Training = () => {
 
   const isVideoStarted = (videoId: string) => {
     const videoProgress = getVideoProgress(videoId);
-    return videoProgress?.started_at !== null;
+    return !!videoProgress;
   };
 
   const startVideo = async (videoId: string) => {
