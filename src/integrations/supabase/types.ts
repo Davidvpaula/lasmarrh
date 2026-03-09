@@ -273,6 +273,7 @@ export type Database = {
           created_at: string
           description: string | null
           file_name: string
+          file_path: string | null
           file_url: string
           id: string
           is_active: boolean
@@ -284,6 +285,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           file_name?: string
+          file_path?: string | null
           file_url?: string
           id?: string
           is_active?: boolean
@@ -295,6 +297,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           file_name?: string
+          file_path?: string | null
           file_url?: string
           id?: string
           is_active?: boolean
@@ -303,6 +306,45 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      signed_documents: {
+        Row: {
+          application_id: string
+          created_at: string
+          id: string
+          signature_document_id: string
+          signed_at: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          id?: string
+          signature_document_id: string
+          signed_at?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          id?: string
+          signature_document_id?: string
+          signed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signed_documents_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signed_documents_signature_document_id_fkey"
+            columns: ["signature_document_id"]
+            isOneToOne: false
+            referencedRelation: "signature_documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stage_progress: {
         Row: {
