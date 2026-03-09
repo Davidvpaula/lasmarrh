@@ -17,7 +17,7 @@ interface TrainingProgress {
   video_id: string;
   watch_time_minutes: number;
   completed_at: string | null;
-  started_at: string | null;
+  application_id: string;
 }
 
 interface CandidateProgress {
