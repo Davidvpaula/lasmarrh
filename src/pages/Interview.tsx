@@ -153,7 +153,7 @@ const Interview = () => {
           setStageStatus(stage.status);
           if (stage.notes) {
             try {
-              const savedForm = JSON.parse(stage.notes);
+              const savedForm = JSON.parse(String(stage.notes));
               // Ensure backward compatibility with old format
               if (savedForm.availability && (savedForm.availability.days || savedForm.availability.periods)) {
                 setForm({

@@ -121,7 +121,7 @@ const Documents = () => {
           
           if (stage.notes) {
             try {
-              const savedData = JSON.parse(stage.notes);
+              const savedData = JSON.parse(String(stage.notes));
               if (savedData.form) setForm(savedData.form);
               if (savedData.uploadedDocs) setUploadedDocs(savedData.uploadedDocs);
             } catch (e) {
@@ -161,7 +161,7 @@ const Documents = () => {
         try {
           const { data: signedUrl, error: urlError } = await supabase.storage
             .from('candidate-documents')
-            .createSignedUrl(doc.file_path, 3600); // 1 hora de validade
+            .createSignedUrl(doc.file_url || doc.file_name, 3600); // 1 hora de validade
 
           if (urlError) {
             console.error('Error creating signed URL:', urlError);

@@ -167,7 +167,7 @@ export const SystemTester = () => {
     updateTestStatus(categoryIndex, 3, 'running');
     try {
       // Tentar executar uma função existente
-      const { error } = await supabase.rpc('is_admin', { _user_id: user?.id || '' });
+      const { error } = await supabase.rpc('is_admin', { p_user_id: user?.id || '' });
       if (error && !error.message.includes('function')) {
         throw error;
       }

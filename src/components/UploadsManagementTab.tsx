@@ -134,12 +134,12 @@ const UploadsManagementTab = () => {
           crm: p.crm || 'CRM não informado',
           phone: p.phone || 'Telefone não informado',
           current_stage: app.current_stage,
-          documents: relatedDocs.map(doc => ({
+          documents: relatedDocs.map((doc: any) => ({
             id: doc.id,
             document_type: doc.document_type,
             file_name: doc.file_name,
-            file_path: doc.file_path,
-            uploaded_at: doc.uploaded_at,
+            file_path: doc.file_url,
+            uploaded_at: doc.created_at,
             status: 'pending' as 'pending' | 'approved' | 'rejected'
           }))
         };

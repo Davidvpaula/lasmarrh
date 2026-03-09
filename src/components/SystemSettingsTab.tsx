@@ -105,9 +105,9 @@ export const SystemSettingsTab = () => {
 
       // Log da ação
       await supabase.rpc('log_audit_event', {
-        _action: 'UPDATE_SYSTEM_SETTINGS',
-        _table_name: 'system_settings',
-        _details: JSON.stringify(settings)
+        p_action: 'UPDATE_SYSTEM_SETTINGS',
+        p_entity_type: 'system_settings',
+        p_new_values: settings as any
       });
 
       toast({

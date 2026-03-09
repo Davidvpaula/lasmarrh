@@ -96,9 +96,9 @@ export const BackupDataTab = () => {
 
       // Log da ação
       await supabase.rpc('log_audit_event', {
-        _action: 'CREATE_BACKUP',
-        _table_name: 'backup',
-        _details: JSON.stringify(newBackup)
+        p_action: 'CREATE_BACKUP',
+        p_entity_type: 'backup',
+        p_new_values: newBackup as any
       });
 
       toast({
@@ -129,10 +129,10 @@ export const BackupDataTab = () => {
       
       // Log da ação
       await supabase.rpc('log_audit_event', {
-        _action: 'RESTORE_BACKUP', 
-        _table_name: 'backup',
-        _record_id: backupId,
-        _details: JSON.stringify(backup)
+        p_action: 'RESTORE_BACKUP', 
+        p_entity_type: 'backup',
+        p_entity_id: backupId,
+        p_new_values: backup as any
       });
 
       toast({

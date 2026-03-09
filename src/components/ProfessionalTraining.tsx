@@ -74,10 +74,10 @@ const ProfessionalTraining = () => {
         
         setProgress((progressData || []).map(p => ({
           video_id: p.video_id,
-          started_at: p.started_at,
+          started_at: p.created_at,
           completed_at: p.completed_at,
           watch_time_minutes: p.watch_time_minutes || 0,
-          watched_percentage: p.completed_at ? 100 : ((p.watch_time_minutes || 0) / (videosData?.find(v => v.id === p.video_id)?.duration_minutes || 1)) * 100
+          watched_percentage: p.completed_at ? 100 : ((p.watch_time_minutes || 0) / (videosData?.find((v: any) => v.id === p.video_id)?.duration_minutes || 1)) * 100
         })));
 
         // Buscar status da stage 4

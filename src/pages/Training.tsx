@@ -20,7 +20,6 @@ interface TrainingVideo {
 
 interface VideoProgress {
   video_id: string;
-  started_at: string | null;
   completed_at: string | null;
   watch_time_minutes: number;
 }
@@ -113,7 +112,7 @@ const Training = () => {
 
   const isVideoStarted = (videoId: string) => {
     const videoProgress = getVideoProgress(videoId);
-    return videoProgress?.started_at !== null;
+    return !!videoProgress;
   };
 
   const startVideo = async (videoId: string) => {
@@ -128,18 +127,10 @@ const Training = () => {
           .insert({
             application_id: applicationId,
             video_id: videoId,
-            started_at: new Date().toISOString(),
             watch_time_minutes: 0
           });
-      } else if (!existingProgress.started_at) {
-        await supabase
-          .from('training_progress')
-          .update({
-            started_at: new Date().toISOString()
-          })
-          .eq('application_id', applicationId)
-          .eq('video_id', videoId);
       }
+      setCurrentVideo(videoId);
 
       setCurrentVideo(videoId);
       await loadTrainingData();

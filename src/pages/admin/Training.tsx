@@ -17,7 +17,7 @@ interface TrainingProgress {
   video_id: string;
   watch_time_minutes: number;
   completed_at: string | null;
-  started_at: string | null;
+  application_id: string;
 }
 
 interface CandidateProgress {
@@ -100,7 +100,7 @@ export default function Training() {
       // Buscar progresso de treinamento de todos os candidatos
       const { data: progressData, error: progressError } = await supabase
         .from('training_progress')
-        .select('application_id, video_id, watch_time_minutes, completed_at, started_at');
+        .select('application_id, video_id, watch_time_minutes, completed_at');
 
       if (progressError) throw progressError;
 
@@ -114,7 +114,7 @@ export default function Training() {
         const candidateProgress = progressData?.filter(p => p.application_id === app.id) || [];
         
         const completedVideos = candidateProgress.filter(p => p.completed_at !== null).length;
-        const inProgressVideos = candidateProgress.filter(p => p.started_at !== null && p.completed_at === null).length;
+        const inProgressVideos = candidateProgress.filter(p => p.completed_at === null).length;
         const notStartedVideos = (videosData?.length || 0) - candidateProgress.length;
 
         candidatesMap.set(app.id, {

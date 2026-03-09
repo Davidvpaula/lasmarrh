@@ -26,8 +26,8 @@ interface Document {
   id: string;
   document_type: string;
   file_name: string;
-  file_path: string;
-  uploaded_at: string;
+  file_url: string;
+  created_at: string;
 }
 
 const TrainingManagement = () => {
@@ -76,7 +76,7 @@ const TrainingManagement = () => {
         .from('documents')
         .select('*')
         .eq('document_type', 'template')
-        .order('uploaded_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setDocuments(data || []);
@@ -408,7 +408,7 @@ const TrainingManagement = () => {
                       Tipo: {doc.document_type}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Enviado em {new Date(doc.uploaded_at).toLocaleDateString('pt-BR')}
+                      Enviado em {new Date(doc.created_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                 </div>
