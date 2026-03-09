@@ -408,7 +408,7 @@ const TrainingManagement = () => {
                       Tipo: {doc.document_type}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Enviado em {new Date(doc.uploaded_at).toLocaleDateString('pt-BR')}
+                      Enviado em {new Date(doc.created_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                 </div>
