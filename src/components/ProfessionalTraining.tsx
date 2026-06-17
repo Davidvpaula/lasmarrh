@@ -196,7 +196,6 @@ const ProfessionalTraining = () => {
           .insert({
             application_id: applicationId,
             video_id: videoId,
-            started_at: new Date().toISOString(),
             watch_time_minutes: 0
           });
 
@@ -260,7 +259,6 @@ const ProfessionalTraining = () => {
           .insert({
             application_id: applicationId,
             video_id: confirmingSignature,
-            started_at: new Date().toISOString(),
             completed_at: new Date().toISOString(),
             watch_time_minutes: video.duration_minutes
           });

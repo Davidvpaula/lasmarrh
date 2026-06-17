@@ -233,9 +233,7 @@ const Documents = () => {
       .insert({
         application_id: applicationId,
         document_type: docType,
-        file_path: fileName,
         file_name: file.name,
-        title: docType,
         file_url: publicUrl
       });
 
